@@ -49,6 +49,9 @@ class MariadbContainer(Container):
             "--all-databases",
             "--no-tablespaces",
             "--single-transaction",
+            "--order-by-primary",
+            "--compact",
+            "--force"
         ]
 
     def backup(self):
@@ -116,6 +119,9 @@ class MysqlContainer(Container):
             "--all-databases",
             "--no-tablespaces",
             "--single-transaction",
+            "--order-by-primary",
+            "--compact",
+            "--force"
         ]
 
     def backup(self):
