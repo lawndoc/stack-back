@@ -171,7 +171,7 @@ class Container:
     def postgresql_backup_enabled(self) -> bool:
         """bool: If the ``stack-back.postgres`` label is set"""
         return utils.is_true(self.get_label(enums.LABEL_POSTGRES_ENABLED))
-    
+
     @property
     def stop_during_backup(self) -> bool:
         """bool: If the ``stack-back.volumes.stop-during-backup`` label is set"""
@@ -387,13 +387,17 @@ class RunningContainers:
 
             # Gather stop during backup containers
             if container.stop_during_backup:
-                self.stop_during_backup_containers.append(container)
+                if config.swarm_mode:
+                    self.stop_during_backup_containers.append(container)
+                else:
+                    if container.project_name == self.this_container.project_name:
+                        self.stop_during_backup_containers.append(container)
 
             # Detect running backup process container
             if container.is_backup_process_container:
                 self.backup_process_container = container
 
-            # --- Determine what containers should be evaludated
+            # --- Determine what containers should be evaluated
 
             # If not swarm mode we need to filter in compose project
             if not config.swarm_mode:
