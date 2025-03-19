@@ -146,7 +146,11 @@ class Container:
     @property
     def volume_backup_enabled(self) -> bool:
         """bool: If the ``stack-back.volumes`` label is set"""
-        return utils.is_true(self.get_label(enums.LABEL_VOLUMES_ENABLED))
+        label_value = self.get_label(enums.LABEL_VOLUMES_ENABLED)
+
+        return utils.is_true(label_value) or (
+            utils.is_true(config.include_all_volumes) and label_value is None
+        )
 
     @property
     def database_backup_enabled(self) -> bool:
