@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Dump all env vars so we can source them in cron jobs
-rcb dump-env > /env.sh
+rcb dump-env > /.env
 
 # Write crontab
 rcb crontab > crontab

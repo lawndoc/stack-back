@@ -2,7 +2,7 @@ import os
 
 
 class Config:
-    default_backup_command = "source /env.sh && rcb backup > /proc/1/fd/1"
+    default_backup_command = "source /.env && rcb backup > /proc/1/fd/1"
     default_crontab_schedule = "0 2 * * *"
 
     """Bag for config values"""
