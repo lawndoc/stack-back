@@ -188,6 +188,16 @@ connecting to the Docker host. Combined with ``DOCKER_TLS_VERIFY``
 this can be used to talk to docker through TLS in cases
 were we cannot map in the docker socket.
 
+INCLUDE_ALL_VOLUMES
+~~~~~~~~~~~~~~~~~~~
+
+If defined, all volumes will be included in the backup.
+This is useful when you want to back up all volumes
+in a project without having to add labels to each service.
+
+Volumes can be excluded by adding the ``stack-back.volumes.exclude``
+label to the service.
+
 INCLUDE_PROJECT_NAME
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -272,6 +282,30 @@ Their path in restic will be:
 - /volumes/myservice/srv/files
 - /volumes/myservice/srv/data
 
+In situations where the files in the volume are at risk of being
+corrupted during the backup process (such as SQLite databases), 
+the `stack-back.volumes.stop-during-backup` label can be added to 
+the service. This will stop the service during the backup process 
+and start it again when the backup is done.
+
+Example:
+
+.. code:: yaml
+  
+    myservice:
+      image: some_image
+      labels:
+        stack-back.volumes: true
+        stack-back.volumes.stop-during-backup: true
+      volumes:
+        - uploaded_media:/srv/media
+        - uploaded_files:/srv/files
+        - /srv/data:/srv/data
+
+    volumes:
+      media:
+      files:
+
 A simple `include` and `exclude` filter for what volumes
 should be backed up is also available. Note that this
 includes or excludes entire volumes and are not include/exclude
@@ -333,8 +367,8 @@ when using the official mariadb_ image.
 
 .. code::
 
-    MYSQL_USER
-    MYSQL_PASSWORD
+    MARIADB_USER
+    MARIADB_PASSWORD
 
 Backups are done by dumping all databases directly into
 restic through stdin using ``mysqldump``. It will appear
@@ -342,7 +376,7 @@ in restic as a separate snapshot with path
 ``/databases/<service_name>/all_databases.sql``.
 
 .. warning: This will only back up the databases the
-            ``MYSQL_USER` has access to. If you have multiple
+            ``MARIADB_USER` has access to. If you have multiple
             databases this must be taken into consideration.
 
 Example:

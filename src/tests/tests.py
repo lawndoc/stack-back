@@ -245,6 +245,46 @@ class IncludeAllVolumesTests(BaseTestCase):
         self.assertEqual(len(mounts), 2)
         self.assertEqual(mounts[0].source, "/srv/files/media")
         self.assertEqual(mounts[1].source, "/srv/files/stuff")
+        
+    def test_redundant_label(self):
+        """Test that a container has a redundant label and should be backed up"""
+
+        containers = self.createContainers()
+        containers += [
+            {
+                "service": "web",
+                "labels": {
+                    "stack-back.volumes": True,
+                },
+                "mounts": [
+                    {
+                        "Source": "/srv/files/media",
+                        "Destination": "/srv/media",
+                        "Type": "bind",
+                    },
+                    {
+                        "Source": "/srv/files/stuff",
+                        "Destination": "/srv/stuff",
+                        "Type": "bind",
+                    },
+                ],
+            },
+        ]
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
+            cnt = RunningContainers()
+
+        web_service = cnt.get_service("web")
+        self.assertNotEqual(web_service, None, msg="Web service not found")
+
+        mounts = web_service.filter_mounts()
+        print(mounts)
+        self.assertEqual(len(mounts), 2)
+        self.assertEqual(mounts[0].source, "/srv/files/media")
+        self.assertEqual(mounts[1].source, "/srv/files/stuff")
+
+
 
     def test_explicit_exclude(self):
         """Test that a container can be excluded from the backup"""
