@@ -25,7 +25,7 @@ services:
       - ./.vscode:/srv/code
 
   mysql5:
-    image: mysql:5
+    image: mysql:9
     labels:
       stack-back.mysql: true
     environment:
@@ -37,7 +37,7 @@ services:
       - mysqldata5:/var/lib/mysql
 
   mysql8:
-    image: mysql:8
+    image: mysql:9
     labels:
       stack-back.mysql: true
     environment:
