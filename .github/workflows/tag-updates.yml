@@ -6,7 +6,7 @@ on:
       - main
     paths-ignore:
       - .gitignore
-      - renovate.json
+      - .github/renovate.json
       - README.MD
       - LICENSE
       - docs/
