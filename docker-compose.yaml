@@ -61,7 +61,7 @@ services:
       - mariadbdata:/var/lib/mysql
 
   postgres:
-    image: postgres:11
+    image: postgres:17
     labels:
       stack-back.postgres: true
     environment:
