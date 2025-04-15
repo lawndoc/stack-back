@@ -23,7 +23,7 @@ jobs:
 
       - name: Get next version
         id: version
-        uses: anothrNick/github-tag-action@1.64.0
+        uses: anothrNick/github-tag-action@f278d49d30cdd8775cc3e7dd00b5ee11686ee297 # 1.71.0
         env:
           WITH_V: true
           DEFAULT_BUMP: patch
@@ -42,7 +42,7 @@ jobs:
           commit_message: automated version bump
 
       - name: Push version tag
-        uses: anothrNick/github-tag-action@1.64.0
+        uses: anothrNick/github-tag-action@f278d49d30cdd8775cc3e7dd00b5ee11686ee297 # 1.71.0
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           CUSTOM_TAG: ${{ steps.version.outputs.new_tag }}
