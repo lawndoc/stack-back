@@ -49,7 +49,7 @@ services:
       - mysqldata8:/var/lib/mysql
 
   mariadb:
-    image: mariadb:10
+    image: mariadb:11
     labels:
       stack-back.mariadb: true
     environment:
