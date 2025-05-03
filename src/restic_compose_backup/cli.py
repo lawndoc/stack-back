@@ -259,7 +259,7 @@ def start_backup_process(config, containers):
 
     # Test the repository for errors
     logger.info("Checking the repository for errors")
-    result = restic.check(config.repository)
+    result = restic.check(config.repository, with_cache=config.check_with_cache)
     if result != 0:
         logger.error('Check exit code: %s', result)
         exit(1)
