@@ -1,0 +1,33 @@
+[project]
+name = "restic_compose_backup"
+version = "1.2.2"
+description = "Backup Docker Compose volumes and databases with Restic"
+requires-python = ">=3.13"
+dependencies = [
+    'docker>=7.1.0',
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "pre-commit>=4.2.0",
+    "pytest>=7.4.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+python_files = ["tests.py"]
+python_classes = ["*Tests"]
+python_functions = ["test_*"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/restic_compose_backup"]
+
+[project.scripts]
+restic-compose-backup = "restic_compose_backup.cli:main"
+rcb = "restic_compose_backup.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

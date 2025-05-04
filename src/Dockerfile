@@ -9,10 +9,14 @@ RUN apk update && apk add \
 
 RUN apk add postgresql-client --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 ADD . /restic-compose-backup
 WORKDIR /restic-compose-backup
-RUN pip install -U pip setuptools wheel --break-system-packages && \
-    pip install -e . --break-system-packages
+
+RUN uv sync --locked --directory src/
+ENV PATH="/app/src/.venv/bin:${PATH}"
+
 ENV XDG_CACHE_HOME=/cache
 
 ENTRYPOINT []
