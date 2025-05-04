@@ -104,6 +104,15 @@ By default the crontab will look like this::
 
     0 2 * * * source /env.sh && rcb backup > /proc/1/fd/1
 
+CHECK_WITH_CACHE
+~~~~~~~~~~~~~~~~~~
+
+**Default value**: ``false``
+
+Whether restic should use the local cache when checking for integrity
+of the repository. This is useful for reducing remote read operations,
+which may be charged by your cloud provider.
+
 LOG_LEVEL
 ~~~~~~~~~
 
