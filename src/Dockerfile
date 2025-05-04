@@ -14,8 +14,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ADD . /restic-compose-backup
 WORKDIR /restic-compose-backup
 
-RUN uv sync --locked --directory src/
-ENV PATH="/app/src/.venv/bin:${PATH}"
+RUN uv sync --locked
+ENV PATH="/restic-compose-backup/.venv/bin:${PATH}"
 
 ENV XDG_CACHE_HOME=/cache
 
