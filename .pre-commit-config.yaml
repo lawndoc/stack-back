@@ -1,0 +1,18 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+        language_version: python3
+  - repo: local
+    hooks:
+      - id: block-python-version
+        name: Block accidental commits to .python-version
+        entry: >
+          bash -c '
+            if git diff --cached --name-only | grep -q "^\.python-version$"; then
+              echo "✋ Do you really want to change .python-version? If so, run again with SKIP=block-python-version"; exit 1;
+            fi
+          '
+        language: system
+        stages: [pre-commit]

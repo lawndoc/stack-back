@@ -71,6 +71,7 @@ def status(config, containers):
     logger.info("Backup currently running?: %s", containers.backup_process_running)
     logger.info("Include project name in backup path?: %s", utils.is_true(config.include_project_name))
     logger.debug("Exclude bind mounts from backups?: %s", utils.is_true(config.exclude_bind_mounts))
+    logger.debug(f"Use cache for integrity check?: {utils.is_true(config.check_with_cache)}")
     logger.info("Checking docker availability")
 
     utils.list_containers()
@@ -259,7 +260,8 @@ def start_backup_process(config, containers):
 
     # Test the repository for errors
     logger.info("Checking the repository for errors")
-    result = restic.check(config.repository)
+    check_with_cache = utils.is_true(config.check_with_cache)
+    result = restic.check(config.repository, with_cache=check_with_cache)
     if result != 0:
         logger.error('Check exit code: %s', result)
         exit(1)

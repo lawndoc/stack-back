@@ -104,11 +104,11 @@ def prune(repository: str):
     ]))
 
 
-def check(repository: str):
-    return commands.run(restic(repository, [
-        "check",
-        # "--with-cache",
-    ]))
+def check(repository: str, with_cache: bool = False):
+    check_args = ["check"]
+    if with_cache:
+        check_args.append("--with-cache")
+    return commands.run(restic(repository, check_args))
 
 
 def restic(repository: str, args: List[str]):

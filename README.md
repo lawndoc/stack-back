@@ -68,6 +68,7 @@ RESTIC_REPOSITORY=s3:s3.us-east-1.amazonaws.com/bucket_name
 RESTIC_PASSWORD=thisdecryptsyourbackupsdontloseit
 AWS_ACCESS_KEY_ID=<your access key id>
 AWS_SECRET_ACCESS_KEY=<your access key id>
+CHECK_WITH_CACHE=true
 # snapshot prune rules
 RESTIC_KEEP_DAILY=7
 RESTIC_KEEP_WEEKLY=4
@@ -108,7 +109,25 @@ More `rcb` commands can be found in the [documentation].
 
 Contributions are welcome regardless of experience level.
 
-## Local dev setup
+## Python environment
+
+Use [`uv`](https://docs.astral.sh/uv/) within the `src/` directory to manage your development environment.
+
+```bash
+git clone https://github.com/lawndoc/stack-back.git
+cd stack-back
+uv sync --directory src/
+```
+
+## Running unit tests
+
+Make sure `uv` is already set up as shown above.
+
+```bash
+uv run --directory src/ pytest
+```
+
+## Docker Compose testing
 
 The git repository contains a simple local setup for development
 
@@ -121,23 +140,8 @@ docker-compose up -d
 docker stack deploy -c swarm-stack.yml test
 ```
 
-In dev we should ideally start the backup container manually
-
-```bash
-docker-compose run --rm backup sh
-# pip install the package in the container in editable mode to auto sync changes from host source
-pip3 install -e .
-```
-
 Remember to enable swarm mode with `docker swarm init/join` and disable swarm
 mode with `docker swarm leave --force` when needed in development (single node setup).
-
-## Running Tests
-
-```bash
-pip install -r src/tests/requirements.txt
-tox
-```
 
 ## Building Docs
 
