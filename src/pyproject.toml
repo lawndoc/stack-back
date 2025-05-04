@@ -2,7 +2,7 @@
 name = "restic_compose_backup"
 version = "1.2.2"
 description = "Backup Docker Compose volumes and databases with Restic"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     'docker>=7.1.0',
 ]
