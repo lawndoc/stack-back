@@ -19,7 +19,6 @@ jobs:
     
       - name: Run tests
         run: |
-          cd src/
           uv sync --locked --directory src/
           uv run --directory src/ pytest
 
