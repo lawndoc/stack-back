@@ -82,9 +82,9 @@ def status(config, containers):
     if containers.stale_backup_process_containers:
         utils.remove_containers(containers.stale_backup_process_containers)
 
-    # Check if repository is initialized with restic snapshots
+    logger.info("Contacting repository")
     if not restic.is_initialized(config.repository):
-        logger.info("Could not get repository info. Attempting to initialize it.")
+        logger.info("Repository is not initialized. Attempting to initialize it.")
         result = restic.init_repo(config.repository)
         if result == 0:
             logger.info("Successfully initialized repository: %s", config.repository)
