@@ -256,17 +256,7 @@ def start_backup_process(config, containers):
 
     # Only run maintenance tasks if maintenance is not scheduled
     if not config.maintenance_schedule:
-        result = cleanup(config, container)
-        if result != 0:
-            logger.error('Cleanup exit code: %s', result)
-            exit(1)
-
-        logger.info("Checking the repository for errors")
-        check_with_cache = utils.is_true(config.check_with_cache)
-        result = restic.check(config.repository, with_cache=check_with_cache)
-        if result != 0:
-            logger.error('Check exit code: %s', result)
-            exit(1)
+        maintenance(config, containers)
 
     logger.info('Backup completed')
     
@@ -279,6 +269,7 @@ def maintenance(config, containers):
         logger.error('Cleanup exit code: %s', result)
         exit(1)
 
+    logger.info("Checking the repository for errors")
     check_with_cache = utils.is_true(config.check_with_cache)
     result = restic.check(config.repository, with_cache=check_with_cache)
     if result != 0:
