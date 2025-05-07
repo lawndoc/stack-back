@@ -14,18 +14,29 @@ QUOTE_CHARS = ['"', "'"]
 
 def generate_crontab(config):
     """Generate a crontab entry for running backup job"""
-    command = config.cron_command.strip()
-    schedule = config.cron_schedule
+    backup_command = config.cron_command.strip()
+    backup_schedule = config.cron_schedule
 
-    if schedule:
-        schedule = schedule.strip()
-        schedule = strip_quotes(schedule)
-        if not validate_schedule(schedule):
-            schedule = config.default_crontab_schedule
+    if backup_schedule:
+        backup_schedule = backup_schedule.strip()
+        backup_schedule = strip_quotes(backup_schedule)
+        if not validate_schedule(backup_schedule):
+            backup_schedule = config.default_crontab_schedule
     else:
-        schedule = config.default_crontab_schedule
+        backup_schedule = config.default_crontab_schedule
 
-    return f'{schedule} {command}\n'
+    crontab = f'{backup_schedule} {backup_command}\n'
+    
+    maintenance_command = config.maintenance_command.strip()
+    maintenance_schedule = config.maintenance_schedule
+    
+    if maintenance_schedule:
+        maintenance_schedule = maintenance_schedule.strip()
+        maintenance_schedule = strip_quotes(maintenance_schedule)
+        if validate_schedule(maintenance_schedule):
+            crontab += f'{maintenance_schedule} {maintenance_command}\n'
+
+    return crontab
 
 
 def validate_schedule(schedule: str):

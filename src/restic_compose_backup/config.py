@@ -4,6 +4,7 @@ import os
 class Config:
     default_backup_command = "source /.env && rcb backup > /proc/1/fd/1"
     default_crontab_schedule = "0 2 * * *"
+    default_maintenance_command = "source /.env && rcb maintenance > /proc/1/fd/1"
 
     """Bag for config values"""
     def __init__(self, check=True):
@@ -13,6 +14,8 @@ class Config:
         self.check_with_cache = os.environ.get('CHECK_WITH_CACHE') or False
         self.cron_schedule = os.environ.get('CRON_SCHEDULE') or self.default_crontab_schedule
         self.cron_command = os.environ.get('CRON_COMMAND') or self.default_backup_command
+        self.maintenance_schedule = os.environ.get('MAINTENANCE_SCHEDULE') or ""
+        self.maintenance_command = os.environ.get('MAINTENANCE_COMMAND') or self.default_maintenance_command
         self.swarm_mode = os.environ.get('SWARM_MODE') or False
         self.include_project_name = os.environ.get('INCLUDE_PROJECT_NAME') or False
         self.exclude_bind_mounts = os.environ.get('EXCLUDE_BIND_MOUNTS') or False
