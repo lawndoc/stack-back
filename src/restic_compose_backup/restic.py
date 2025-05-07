@@ -77,9 +77,6 @@ def is_initialized(repository: str) -> bool:
 
 
 def forget(repository: str, daily: str, weekly: str, monthly: str, yearly: str):
-    commands.run(restic(repository, [
-        'unlock'
-    ]))
     return commands.run(restic(repository, [
         'forget',
         '--group-by',
@@ -96,9 +93,6 @@ def forget(repository: str, daily: str, weekly: str, monthly: str, yearly: str):
 
 
 def prune(repository: str):
-    commands.run(restic(repository, [
-        'unlock'
-    ]))
     return commands.run(restic(repository, [
         'prune',
     ]))
