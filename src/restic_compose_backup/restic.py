@@ -69,11 +69,16 @@ def snapshots(repository: str, last=True) -> Tuple[str, str]:
 def is_initialized(repository: str) -> bool:
     """
     Checks if a repository is initialized using snapshots command.
-    Note that this cannot separate between uninitalized repo
-    and other errors, but this method is reccomended by the restic
-    community.
+    https://restic.readthedocs.io/en/latest/075_scripting.html#check-if-a-repository-is-already-initialized
     """
-    return commands.run(restic(repository, ["snapshots", "--latest", "1"])) == 0
+    response = commands.run(restic(repository, ["cat", "config"]))
+    if response == 0:
+        return True
+    elif response == 10:
+        return False
+    else:
+        logger.error("Error checking if repository is initialized")
+        exit(1)
 
 
 def forget(repository: str, daily: str, weekly: str, monthly: str, yearly: str):
