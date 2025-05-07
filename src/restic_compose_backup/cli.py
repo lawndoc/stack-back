@@ -37,6 +37,9 @@ def main():
 
     elif args.action == 'start-backup-process':
         start_backup_process(config, containers)
+        
+    elif args.action == 'maintenance':
+        maintenance(config, containers)
 
     elif args.action == 'cleanup':
         cleanup(config, containers)
@@ -251,22 +254,36 @@ def start_backup_process(config, containers):
         logger.error('Exit code: %s', errors)
         exit(1)
 
-    # Only run cleanup if backup was successful
-    result = cleanup(config, container)
-    logger.debug('cleanup exit code: %s', result)
+    # Only run maintenance tasks if maintenance is not scheduled
+    if not config.maintenance_schedule:
+        result = cleanup(config, container)
+        if result != 0:
+            logger.error('Cleanup exit code: %s', result)
+            exit(1)
+
+        logger.info("Checking the repository for errors")
+        check_with_cache = utils.is_true(config.check_with_cache)
+        result = restic.check(config.repository, with_cache=check_with_cache)
+        if result != 0:
+            logger.error('Check exit code: %s', result)
+            exit(1)
+
+    logger.info('Backup completed')
+    
+
+def maintenance(config, containers):
+    """Run maintenance tasks"""
+    logger.info('Running maintenance tasks')
+    result = cleanup(config, containers)
     if result != 0:
-        logger.error('cleanup exit code: %s', result)
+        logger.error('Cleanup exit code: %s', result)
         exit(1)
 
-    # Test the repository for errors
-    logger.info("Checking the repository for errors")
     check_with_cache = utils.is_true(config.check_with_cache)
     result = restic.check(config.repository, with_cache=check_with_cache)
     if result != 0:
         logger.error('Check exit code: %s', result)
         exit(1)
-
-    logger.info('Backup completed')
 
 
 def cleanup(config, containers):
@@ -321,6 +338,7 @@ def parse_args():
             'snapshots',
             'backup',
             'start-backup-process',
+            'maintenance',
             'alert',
             'cleanup',
             'version',
