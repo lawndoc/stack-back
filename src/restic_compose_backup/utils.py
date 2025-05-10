@@ -9,7 +9,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-TRUE_VALUES = ['1', 'true', 'True', True, 1]
+TRUE_VALUES = ['1', 'true', 'True', 'TRUE', True, 1]
+FALSE_VALUES = ['0', 'false', 'False', 'FALSE', False, 0]
 
 
 def docker_client():
@@ -91,6 +92,13 @@ def is_true(value):
     Evaluates the truthfullness of a bool value in container labels
     """
     return value in TRUE_VALUES
+
+
+def is_false(value):
+    """
+    Evaluates the falseness of a bool value in container labels
+    """
+    return value in FALSE_VALUES
 
 
 def strip_root(path):
