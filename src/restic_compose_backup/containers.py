@@ -149,7 +149,7 @@ class Container:
         label_value = self.get_label(enums.LABEL_VOLUMES_ENABLED)
 
         return utils.is_true(label_value) or (
-            utils.is_true(config.include_all_volumes) and label_value is None
+            utils.is_true(config.auto_backup_all) and label_value is None
         )
 
     @property
@@ -164,17 +164,26 @@ class Container:
     @property
     def mysql_backup_enabled(self) -> bool:
         """bool: If the ``stack-back.mysql`` label is set"""
-        return utils.is_true(self.get_label(enums.LABEL_MYSQL_ENABLED))
+        explicity_enabled = utils.is_true(self.get_label(enums.LABEL_MYSQL_ENABLED))
+        explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MYSQL_ENABLED))
+        automatically_enabled = utils.is_true(config.auto_backup_all) and self.image.startswith('mysql:')
+        return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
     def mariadb_backup_enabled(self) -> bool:
         """bool: If the ``stack-back.mariadb`` label is set"""
-        return utils.is_true(self.get_label(enums.LABEL_MARIADB_ENABLED))
+        explicity_enabled = utils.is_true(self.get_label(enums.LABEL_MARIADB_ENABLED))
+        explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MARIADB_ENABLED))
+        automatically_enabled = utils.is_true(config.auto_backup_all) and self.image.startswith('mariadb:')
+        return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
     def postgresql_backup_enabled(self) -> bool:
         """bool: If the ``stack-back.postgres`` label is set"""
-        return utils.is_true(self.get_label(enums.LABEL_POSTGRES_ENABLED))
+        explicity_enabled = utils.is_true(self.get_label(enums.LABEL_POSTGRES_ENABLED))
+        explicity_disabled = utils.is_false(self.get_label(enums.LABEL_POSTGRES_ENABLED))
+        automatically_enabled = utils.is_true(config.auto_backup_all) and self.image.startswith('postgres:')
+        return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
     def stop_during_backup(self) -> bool:
@@ -202,6 +211,7 @@ class Container:
     def filter_mounts(self):
         """Get all mounts for this container matching include/exclude filters"""
         filtered = []
+        database_mounts = ["/var/lib/mysql", "/var/lib/postgresql/data"]
 
         # If exclude_bind_mounts is true, only volume mounts are kept in the list of mounts
         exclude_bind_mounts = utils.is_true(config.exclude_bind_mounts)
@@ -228,7 +238,10 @@ class Container:
                 else:
                     filtered.append(mount)
         else:
-            return mounts
+            for mount in mounts:
+                if self.database_backup_enabled and mount.destination in database_mounts:
+                    continue
+                filtered.append(mount)
 
         return filtered
 

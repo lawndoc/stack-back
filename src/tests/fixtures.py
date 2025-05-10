@@ -21,6 +21,7 @@ def containers(project="default", containers=[]):
                 'containers: [
                     'id': 'something'
                     'service': 'service_name',
+                    'image': 'image:tag',
                     'mounts: [{
                         'Source': '/home/user/stuff',
                         'Destination': '/srv/stuff',
@@ -35,7 +36,7 @@ def containers(project="default", containers=[]):
             'Id': container.get('id', generate_sha256()),
             'Name': container.get('service') + '_' + ''.join(random.choice(string.ascii_lowercase) for i in range(16)),
             'Config': {
-                'Image': 'stack-back_backup',
+                'Image': container.get('image', 'image:latest'),
                 'Labels': {
                     'com.docker.compose.oneoff': 'False',
                     'com.docker.compose.project': project,
