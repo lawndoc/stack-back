@@ -19,6 +19,8 @@ services:
     image: ghcr.io/lawndoc/stack-back:<version>
     env_file:
       - stack-back.env
+    environment:
+      - AUTO_DETECT_ALL: True
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - cache:/cache # Persistent restic cache (greatly speeds up all restic operations)
@@ -28,18 +30,14 @@ services:
 
 ```yaml
   web:
-    image: some_image
-    labels:
-      stack-back.volumes: true # Enables backup of the volumes below
+    image: some_image  # Backs up the volumes below
     volumes:
       - media:/srv/media
       - /srv/files:/srv/files
   mysql:
-    image: mysql:9
-    labels:
-      stack-back.mysql: true # Enables stateful backup using mysqldump
+    image: mysql:9  # Performs stateful backup using mysqldump
     volumes:
-      - mysql:/var/lib/mysql
+      - mysql:/var/lib/mysql  # Only SQL dump is backed up
 ```
 
 [Documentation](https://stack-back.readthedocs.io)
@@ -64,6 +62,7 @@ Restic-specific environment variables can be found in the [restic documentation]
 stack-back.env
 
 ```bash
+AUTO_BACKUP_ALL=True
 RESTIC_REPOSITORY=s3:s3.us-east-1.amazonaws.com/bucket_name
 RESTIC_PASSWORD=thisdecryptsyourbackupsdontloseit
 AWS_ACCESS_KEY_ID=<your access key id>
@@ -77,6 +76,29 @@ RESTIC_KEEP_YEARLY=3
 # Cron schedule. Run every day at 1am
 CRON_SCHEDULE="0 1 * * *"
 ```
+
+## Advanced configuration (container labels)
+
+You can also use `stack-back` container labels for granular control over which volumes get backed up.
+
+```yaml
+  web:
+    image: some_image
+    labels:
+      - stack-back.volumes.exclude: files  # host mount substring matching
+    volumes:
+      - media:/srv/media       # will be backed up
+      - /srv/files:/srv/files  # will NOT be backed up
+  mysql:
+    image: mysql:9
+    labels:
+      - stack-back.mysql: False   # don't perform database dump backup
+      - stack-back.volumes: False # don't back up any volumes for this container either
+    volumes:
+      - mysql:/var/lib/mysql
+```
+
+Detailed documentation on compose labels can be found in the [stack-back documentation](https://stack-back.readthedocs.io/en/latest/guide/configuration.html#compose-labels)
 
 ## The `rcb` command
 
