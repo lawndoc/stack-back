@@ -336,14 +336,14 @@ class ResticBackupTests(BaseTestCase):
 class IncludeAllVolumesTests(BaseTestCase):
     @classmethod
     def setUpClass(cls):
-        config.config.include_all_volumes = "true"
+        config.config.auto_backup_all = "true"
 
     @classmethod
     def tearDownClass(cls):
         config.config = config.Config()
 
     def test_all_volumes(self):
-        """Test that the INCLUDE_ALL_VOLUMES flag works"""
+        """Test that the AUTO_BACKUP_ALL flag works"""
         containers = self.createContainers()
         containers += [
             {
@@ -377,7 +377,7 @@ class IncludeAllVolumesTests(BaseTestCase):
         self.assertEqual(mounts[1].source, "/srv/files/stuff")
 
     def test_all_databases(self):
-        """Test that the INCLUDE_ALL_VOLUMES flag intelligently handles databases based on image"""
+        """Test that the AUTO_BACKUP_ALL flag intelligently handles databases based on image"""
         containers = self.createContainers()
         containers += [
             {

@@ -215,15 +215,25 @@ connecting to the Docker host. Combined with ``DOCKER_TLS_VERIFY``
 this can be used to talk to docker through TLS in cases
 were we cannot map in the docker socket.
 
-INCLUDE_ALL_VOLUMES
+AUTO_BACKUP_ALL
 ~~~~~~~~~~~~~~~~~~~
 
-If defined, all volumes will be included in the backup.
-This is useful when you want to back up all volumes
-in a project without having to add labels to each service.
+If defined, all volumes and databases in the project will be 
+included in the backup. This removes the need to add labels to 
+each service when you want to back up everything.
 
-Volumes can be excluded by adding the ``stack-back.volumes.exclude``
-label to the service.
+Database detection is based on the default images for mariadb, mysql 
+and postgres. When a database is detected, the volume associated with 
+the database data is automatically excluded from the backup.
+
+Volumes can be excluded by adding the ``stack-back.volumes.exclude: <volume_name>``
+or ``stack-back.volumes: False`` label to the service.
+
+Databases can be excluded by adding the
+``stack-back.<db_type>: False`` label to the service along with 
+``stack-back.volumes: False``. Forgetting to also exclude the 
+volumes may result in a backup of the database files volume instead 
+of the database itself.
 
 INCLUDE_PROJECT_NAME
 ~~~~~~~~~~~~~~~~~~~~

@@ -149,7 +149,7 @@ class Container:
         label_value = self.get_label(enums.LABEL_VOLUMES_ENABLED)
 
         return utils.is_true(label_value) or (
-            utils.is_true(config.include_all_volumes) and label_value is None
+            utils.is_true(config.auto_backup_all) and label_value is None
         )
 
     @property
@@ -166,7 +166,7 @@ class Container:
         """bool: If the ``stack-back.mysql`` label is set"""
         explicity_enabled = utils.is_true(self.get_label(enums.LABEL_MYSQL_ENABLED))
         explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MYSQL_ENABLED))
-        automatically_enabled = utils.is_true(config.include_all_volumes) and self.image.startswith('mysql:')
+        automatically_enabled = utils.is_true(config.auto_backup_all) and self.image.startswith('mysql:')
         return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
@@ -174,7 +174,7 @@ class Container:
         """bool: If the ``stack-back.mariadb`` label is set"""
         explicity_enabled = utils.is_true(self.get_label(enums.LABEL_MARIADB_ENABLED))
         explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MARIADB_ENABLED))
-        automatically_enabled = utils.is_true(config.include_all_volumes) and self.image.startswith('mariadb:')
+        automatically_enabled = utils.is_true(config.auto_backup_all) and self.image.startswith('mariadb:')
         return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
@@ -182,7 +182,7 @@ class Container:
         """bool: If the ``stack-back.postgres`` label is set"""
         explicity_enabled = utils.is_true(self.get_label(enums.LABEL_POSTGRES_ENABLED))
         explicity_disabled = utils.is_false(self.get_label(enums.LABEL_POSTGRES_ENABLED))
-        automatically_enabled = utils.is_true(config.include_all_volumes) and self.image.startswith('postgres:')
+        automatically_enabled = utils.is_true(config.auto_backup_all) and self.image.startswith('postgres:')
         return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property

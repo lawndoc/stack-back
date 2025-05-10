@@ -1,5 +1,7 @@
+import logging
 import os
 
+logger = logging.getLogger(__name__)
 
 class Config:
     default_backup_command = "source /.env && rcb backup > /proc/1/fd/1"
@@ -20,6 +22,9 @@ class Config:
         self.include_project_name = os.environ.get('INCLUDE_PROJECT_NAME') or False
         self.exclude_bind_mounts = os.environ.get('EXCLUDE_BIND_MOUNTS') or False
         self.include_all_volumes = os.environ.get('INCLUDE_ALL_VOLUMES') or False
+        if self.include_all_volumes:
+            logger.warning("INCLUDE_ALL_VOLUMES will be deprecated in the future in favor of AUTO_BACKUP_ALL. Please update your environment variables.")
+        self.auto_backup_all = os.environ.get('AUTO_BACKUP_ALL') or self.include_all_volumes
 
         # Log
         self.log_level = os.environ.get('LOG_LEVEL')
