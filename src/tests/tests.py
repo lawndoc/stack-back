@@ -123,6 +123,25 @@ class ResticBackupTests(BaseTestCase):
         self.assertTrue(mysql_service.mysql_backup_enabled)
         self.assertEqual(len(mounts), 0)
 
+    def test_no_volumes_for_backup(self):
+        containers = self.createContainers()
+        containers += [
+            {
+                'service': 'web',
+                'labels': {
+                    'stack-back.volumes': True,
+                },
+            },
+        ]
+        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+            cnt = RunningContainers()
+            self.assertTrue(len(cnt.containers_for_backup()) == 1)
+        web_service = cnt.get_service('web')
+        self.assertNotEqual(web_service, None, msg="Web service not found")
+        mounts = web_service.filter_mounts()
+        print(mounts)
+        self.assertEqual(len(mounts), 0)
+
     def test_databases_for_backup(self):
         containers = self.createContainers()
         containers += [
@@ -416,7 +435,7 @@ class IncludeAllVolumesTests(BaseTestCase):
 
         postgres_service = cnt.get_service("postgres")
         self.assertNotEqual(postgres_service, None, msg="Postgres service not found")
-        self.assertTrue(postgres_service.postgres_backup_enabled)
+        self.assertTrue(postgres_service.postgresql_backup_enabled)
         mounts = postgres_service.filter_mounts()
         print(mounts)
         self.assertEqual(len(mounts), 0)
