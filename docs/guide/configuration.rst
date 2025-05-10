@@ -104,6 +104,21 @@ By default the crontab will look like this::
 
     0 2 * * * source /env.sh && rcb backup > /proc/1/fd/1
 
+MAINTENANCE_SCHEDULE
+~~~~~~~~~~~~~~~~~~~~~
+
+**Default value**: null`
+
+By default, maintenance (restic forget + prune + check) happens after
+every successful backup. This can be changed by setting this
+environment variable to a cron schedule. The format is the same as
+the ``CRON_SCHEDULE`` variable.
+
+This is useful if maintenance tasks are using a lot of read operations
+and you want to limit them to reduce cloud costs. The tradeoff is that
+the repository will be larger for a longer time as forget and prune
+will not be run after every backup.
+
 CHECK_WITH_CACHE
 ~~~~~~~~~~~~~~~~~~
 
@@ -112,6 +127,9 @@ CHECK_WITH_CACHE
 Whether restic should use the local cache when checking for integrity
 of the repository. This is useful for reducing remote read operations,
 which may be charged by your cloud provider.
+
+The tradeoff is that there is a small risk of not detecting corrupted 
+data in the repository if the remote is corrupted but the local cache is not.
 
 LOG_LEVEL
 ~~~~~~~~~

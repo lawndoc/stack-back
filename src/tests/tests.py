@@ -201,7 +201,56 @@ class ResticBackupTests(BaseTestCase):
         with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
             cnt = RunningContainers()
             self.assertTrue(cnt.backup_process_running)
+            
+    def test_stop_container_during_backup_volume(self):
+        containers = self.createContainers()
+        containers += [
+            {
+                'service': 'web',
+                'labels': {
+                    'stack-back.volumes': True,
+                    'stack-back.volumes.include': 'sqlite',
+                    'stack-back.volumes.stop-during-backup': True,
+                },
+                'mounts': [
+                    {
+                        'Source': '/srv/files/media',
+                        'Destination': '/srv/media',
+                        'Type': 'bind',
+                    },
+                    {
+                        'Source': '/srv/files/sqlite',
+                        'Destination': '/srv/sqlite',
+                        'Type': 'bind',
+                    },
+                ]
+            }
+        ]
+        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+            cnt = RunningContainers()
+        web_service = cnt.get_service('web')
+        self.assertTrue(web_service.stop_during_backup)
 
+    def test_stop_container_during_backup_database(self):
+        containers = self.createContainers()
+        containers += [
+            {
+                'service': 'mysql',
+                'labels': {
+                    'stack-back.mysql': True,
+                    'stack-back.volumes.stop-during-backup': True,
+                },
+                'mounts': [{
+                    'Source': 'data',
+                    'Destination': 'data',
+                    'Type': 'bind',
+                }]
+            },
+        ]
+        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+            cnt = RunningContainers()
+        mysql_service = cnt.get_service('mysql')
+        self.assertFalse(mysql_service.stop_during_backup)
 
 class IncludeAllVolumesTests(BaseTestCase):
     @classmethod
@@ -212,7 +261,7 @@ class IncludeAllVolumesTests(BaseTestCase):
     def tearDownClass(cls):
         config.config = config.Config()
 
-    def test_basic_functionality(self):
+    def test_all_volumes(self):
         """Test that the INCLUDE_ALL_VOLUMES flag works"""
         containers = self.createContainers()
         containers += [
