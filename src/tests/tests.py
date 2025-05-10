@@ -116,6 +116,65 @@ class ResticBackupTests(BaseTestCase):
             cnt = RunningContainers()
             self.assertTrue(len(cnt.containers_for_backup()) == 2)
             self.assertEqual(cnt.generate_backup_mounts(), {'test': {'bind': '/volumes/web/test', 'mode': 'ro'}})
+        mysql_service = cnt.get_service('mysql')
+        self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
+        mounts = mysql_service.filter_mounts()
+        print(mounts)
+        self.assertTrue(mysql_service.mysql_backup_enabled)
+        self.assertEqual(len(mounts), 0)
+
+    def test_databases_for_backup(self):
+        containers = self.createContainers()
+        containers += [
+            {
+                'service': 'mysql',
+                'labels': {
+                    'stack-back.mysql': True,
+                },
+                'mounts': [{
+                    'Source': '/srv/mysql/data',
+                    'Destination': '/var/lib/mysql',
+                    'Type': 'bind',
+                }]
+            },
+            {
+                "service": "mariadb",
+                'labels': {
+                    'stack-back.mariadb': True,
+                },
+                "mounts": [
+                    {
+                        "Source": "/srv/mariadb/data",
+                        "Destination": "/var/lib/mysql",
+                        "Type": "bind",
+                    },
+                ],
+            },
+            {
+                "service": "postgres",
+                'labels': {
+                    'stack-back.postgres': True,
+                },
+                "mounts": [
+                    {
+                        "Source": "/srv/postgres/data",
+                        "Destination": "/var/lib/postgresql/data",
+                        "Type": "bind",
+                    },
+                ],
+            },
+        ]
+        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+            cnt = RunningContainers()
+        mysql_service = cnt.get_service('mysql')
+        self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
+        self.assertTrue(mysql_service.mysql_backup_enabled)
+        mariadb_service = cnt.get_service('mariadb')
+        self.assertNotEqual(mariadb_service, None, msg="MariaDB service not found")
+        self.assertTrue(mariadb_service.mariadb_backup_enabled)
+        postgres_service = cnt.get_service('postgres')
+        self.assertNotEqual(postgres_service, None, msg="Posgres service not found")
+        self.assertTrue(postgres_service.postgresql_backup_enabled)
 
     def test_include(self):
         containers = self.createContainers()
@@ -229,6 +288,7 @@ class ResticBackupTests(BaseTestCase):
         with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
             cnt = RunningContainers()
         web_service = cnt.get_service('web')
+        self.assertNotEqual(web_service, None, msg="Web service not found")
         self.assertTrue(web_service.stop_during_backup)
 
     def test_stop_container_during_backup_database(self):
@@ -241,8 +301,8 @@ class ResticBackupTests(BaseTestCase):
                     'stack-back.volumes.stop-during-backup': True,
                 },
                 'mounts': [{
-                    'Source': 'data',
-                    'Destination': 'data',
+                    'Source': '/srv/mysql/data',
+                    'Destination': '/var/lib/mysql',
                     'Type': 'bind',
                 }]
             },
@@ -250,6 +310,8 @@ class ResticBackupTests(BaseTestCase):
         with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
             cnt = RunningContainers()
         mysql_service = cnt.get_service('mysql')
+        self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
+        self.assertTrue(mysql_service.mysql_backup_enabled)
         self.assertFalse(mysql_service.stop_during_backup)
 
 class IncludeAllVolumesTests(BaseTestCase):
@@ -294,9 +356,73 @@ class IncludeAllVolumesTests(BaseTestCase):
         self.assertEqual(len(mounts), 2)
         self.assertEqual(mounts[0].source, "/srv/files/media")
         self.assertEqual(mounts[1].source, "/srv/files/stuff")
+
+    def test_all_databases(self):
+        """Test that the INCLUDE_ALL_VOLUMES flag intelligently handles databases based on image"""
+        containers = self.createContainers()
+        containers += [
+            {
+                "service": "mysql",
+                "image": "mysql:8",
+                "mounts": [
+                    {
+                        "Source": "/srv/mysql/data",
+                        "Destination": "/var/lib/mysql",
+                        "Type": "bind",
+                    },
+                ],
+            },
+            {
+                "service": "mariadb",
+                "image": "mariadb:11",
+                "mounts": [
+                    {
+                        "Source": "/srv/mariadb/data",
+                        "Destination": "/var/lib/mysql",
+                        "Type": "bind",
+                    },
+                ],
+            },
+            {
+                "service": "postgres",
+                "image": "postgres:17",
+                "mounts": [
+                    {
+                        "Source": "/srv/postgres/data",
+                        "Destination": "/var/lib/postgresql/data",
+                        "Type": "bind",
+                    },
+                ],
+            },
+        ]
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
+            cnt = RunningContainers()
+
+        mysql_service = cnt.get_service("mysql")
+        self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
+        mounts = mysql_service.filter_mounts()
+        print(mounts)
+        self.assertEqual(len(mounts), 0)
+        self.assertTrue(mysql_service.mysql_backup_enabled)
+
+        mariadb_service = cnt.get_service("mariadb")
+        self.assertNotEqual(mariadb_service, None, msg="MariaDB service not found")
+        mounts = mariadb_service.filter_mounts()
+        print(mounts)
+        self.assertEqual(len(mounts), 0)
+        self.assertTrue(mariadb_service.mariadb_backup_enabled)
+
+        postgres_service = cnt.get_service("postgres")
+        self.assertNotEqual(postgres_service, None, msg="Postgres service not found")
+        mounts = postgres_service.filter_mounts()
+        print(mounts)
+        self.assertEqual(len(mounts), 0)
+        self.assertTrue(postgres_service.postgres_backup_enabled)
         
-    def test_redundant_label(self):
-        """Test that a container has a redundant label and should be backed up"""
+    def test_redundant_volume_label(self):
+        """Test that a container has a redundant volume label should be backed up"""
 
         containers = self.createContainers()
         containers += [
@@ -333,7 +459,36 @@ class IncludeAllVolumesTests(BaseTestCase):
         self.assertEqual(mounts[0].source, "/srv/files/media")
         self.assertEqual(mounts[1].source, "/srv/files/stuff")
 
+    def test_redundant_database_label(self):
+        """Test that a container has a redundant database label should be backed up"""
+        containers = self.createContainers()
+        containers += [
+            {
+                "service": "mysql",
+                "image": "mysql:8",
+                "labels": {
+                    "stack-back.mysql": True,
+                },
+                "mounts": [
+                    {
+                        "Source": "/srv/mysql/data",
+                        "Destination": "/var/lib/mysql",
+                        "Type": "bind",
+                    },
+                ],
+            },
+        ]
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
+            cnt = RunningContainers()
 
+        mysql_service = cnt.get_service("mysql")
+        self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
+        mounts = mysql_service.filter_mounts()
+        print(mounts)
+        self.assertEqual(len(mounts), 0)
+        self.assertTrue(mysql_service.mysql_backup_enabled)
 
     def test_explicit_exclude(self):
         """Test that a container can be excluded from the backup"""
@@ -407,3 +562,33 @@ class IncludeAllVolumesTests(BaseTestCase):
         print(mounts)
         self.assertEqual(len(mounts), 1)
         self.assertEqual(mounts[0].source, "/srv/files/media")
+
+    def test_specific_database_exclude(self):
+        """Test that a database container can be excluded from the backup"""
+        containers = self.createContainers()
+        containers += [
+            {
+                "service": "mysql",
+                'labels': {
+                    'stack-back.mysql': False,
+                },
+                "mounts": [
+                    {
+                        "Source": "/srv/mysql/data",
+                        "Destination": "/var/lib/mysql",
+                        "Type": "bind",
+                    },
+                ],
+            },
+        ]
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
+            cnt = RunningContainers()
+
+        mysql_service = cnt.get_service("mysql")
+        self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
+        mounts = mysql_service.filter_mounts()
+        print(mounts)
+        self.assertEqual(len(mounts), 0)
+        self.assertFalse(mysql_service.mysql_backup_enabled)
