@@ -261,7 +261,7 @@ class IncludeAllVolumesTests(BaseTestCase):
     def tearDownClass(cls):
         config.config = config.Config()
 
-    def test_basic_functionality(self):
+    def test_all_volumes(self):
         """Test that the INCLUDE_ALL_VOLUMES flag works"""
         containers = self.createContainers()
         containers += [
