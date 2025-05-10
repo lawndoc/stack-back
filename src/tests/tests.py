@@ -590,6 +590,7 @@ class IncludeAllVolumesTests(BaseTestCase):
                 "service": "mysql",
                 'labels': {
                     'stack-back.mysql': False,
+                    'stack-back.volumes': False,
                 },
                 "mounts": [
                     {

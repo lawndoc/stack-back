@@ -211,6 +211,7 @@ class Container:
     def filter_mounts(self):
         """Get all mounts for this container matching include/exclude filters"""
         filtered = []
+        database_mounts = ["/var/lib/mysql", "/var/lib/postgresql/data"]
 
         # If exclude_bind_mounts is true, only volume mounts are kept in the list of mounts
         exclude_bind_mounts = utils.is_true(config.exclude_bind_mounts)
@@ -237,7 +238,10 @@ class Container:
                 else:
                     filtered.append(mount)
         else:
-            return mounts
+            for mount in mounts:
+                if self.database_backup_enabled and mount.destination in database_mounts:
+                    continue
+                filtered.append(mount)
 
         return filtered
 
