@@ -26,7 +26,7 @@ services:
       - cache:/cache # Persistent restic cache (greatly speeds up all restic operations)
 ```
 
-### And add a label to the containers you want backed up
+### and it will back up all your volumes and databases
 
 ```yaml
   web:
