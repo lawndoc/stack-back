@@ -164,17 +164,26 @@ class Container:
     @property
     def mysql_backup_enabled(self) -> bool:
         """bool: If the ``stack-back.mysql`` label is set"""
-        return utils.is_true(self.get_label(enums.LABEL_MYSQL_ENABLED))
+        explicity_enabled = utils.is_true(self.get_label(enums.LABEL_MYSQL_ENABLED))
+        explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MYSQL_ENABLED))
+        automatically_enabled = utils.is_true(config.include_all_volumes) and self.image.startswith('mysql:')
+        return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
     def mariadb_backup_enabled(self) -> bool:
         """bool: If the ``stack-back.mariadb`` label is set"""
-        return utils.is_true(self.get_label(enums.LABEL_MARIADB_ENABLED))
+        explicity_enabled = utils.is_true(self.get_label(enums.LABEL_MARIADB_ENABLED))
+        explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MARIADB_ENABLED))
+        automatically_enabled = utils.is_true(config.include_all_volumes) and self.image.startswith('mariadb:')
+        return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
     def postgresql_backup_enabled(self) -> bool:
         """bool: If the ``stack-back.postgres`` label is set"""
-        return utils.is_true(self.get_label(enums.LABEL_POSTGRES_ENABLED))
+        explicity_enabled = utils.is_true(self.get_label(enums.LABEL_POSTGRES_ENABLED))
+        explicity_disabled = utils.is_false(self.get_label(enums.LABEL_POSTGRES_ENABLED))
+        automatically_enabled = utils.is_true(config.include_all_volumes) and self.image.startswith('postgres:')
+        return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
     def stop_during_backup(self) -> bool:

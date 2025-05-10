@@ -402,24 +402,24 @@ class IncludeAllVolumesTests(BaseTestCase):
 
         mysql_service = cnt.get_service("mysql")
         self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
+        self.assertTrue(mysql_service.mysql_backup_enabled)
         mounts = mysql_service.filter_mounts()
         print(mounts)
         self.assertEqual(len(mounts), 0)
-        self.assertTrue(mysql_service.mysql_backup_enabled)
 
         mariadb_service = cnt.get_service("mariadb")
         self.assertNotEqual(mariadb_service, None, msg="MariaDB service not found")
+        self.assertTrue(mariadb_service.mariadb_backup_enabled)
         mounts = mariadb_service.filter_mounts()
         print(mounts)
         self.assertEqual(len(mounts), 0)
-        self.assertTrue(mariadb_service.mariadb_backup_enabled)
 
         postgres_service = cnt.get_service("postgres")
         self.assertNotEqual(postgres_service, None, msg="Postgres service not found")
+        self.assertTrue(postgres_service.postgres_backup_enabled)
         mounts = postgres_service.filter_mounts()
         print(mounts)
         self.assertEqual(len(mounts), 0)
-        self.assertTrue(postgres_service.postgres_backup_enabled)
         
     def test_redundant_volume_label(self):
         """Test that a container has a redundant volume label should be backed up"""
@@ -485,13 +485,13 @@ class IncludeAllVolumesTests(BaseTestCase):
 
         mysql_service = cnt.get_service("mysql")
         self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
+        self.assertTrue(mysql_service.mysql_backup_enabled)
         mounts = mysql_service.filter_mounts()
         print(mounts)
         self.assertEqual(len(mounts), 0)
-        self.assertTrue(mysql_service.mysql_backup_enabled)
 
-    def test_explicit_exclude(self):
-        """Test that a container can be excluded from the backup"""
+    def test_explicit_volumes_exclude(self):
+        """Test that a container's volumes can be excluded from the backup"""
 
         containers = self.createContainers()
         containers += [
@@ -588,7 +588,7 @@ class IncludeAllVolumesTests(BaseTestCase):
 
         mysql_service = cnt.get_service("mysql")
         self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
+        self.assertFalse(mysql_service.mysql_backup_enabled)
         mounts = mysql_service.filter_mounts()
         print(mounts)
         self.assertEqual(len(mounts), 0)
-        self.assertFalse(mysql_service.mysql_backup_enabled)
