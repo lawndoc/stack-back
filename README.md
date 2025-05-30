@@ -1,5 +1,5 @@
 
-# stack-back
+![stack-back logo](./resources/stack-back_logo.svg)
 
 [![docs](https://readthedocs.org/projects/stack-back/badge/?version=latest)](https://stack-back.readthedocs.io)
 

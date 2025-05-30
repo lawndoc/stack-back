@@ -1,0 +1,23 @@
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 120">
+    <!-- No background rect for transparency -->
+
+    <!-- Stack of containers/volumes on the left -->
+    <rect x="40" y="77.5" width="60" height="30" rx="5" ry="5" fill="#3498db"/>
+    <rect x="40" y="47.5" width="60" height="30" rx="5" ry="5" fill="#2980b9"/>
+    <rect x="40" y="17.5" width="60" height="30" rx="5" ry="5" fill="#1f618d"/>
+
+    <!-- Left-pointing arrow (backup/restore concept) -->
+    <polygon points="120,62.5 150,32.5 150,52.5 180,52.5 180,72.5 150,72.5 150,92.5" fill="#e74c3c"/>
+
+    <!-- Text "stack-back" -->
+    <text x="200" y="82.5" font-family="Arial, sans-serif" font-size="70" font-weight="bold" fill="#666666">stack-back</text>
+
+    <!-- Right-pointing arrow (restore/destination concept) -->
+    <polygon points="580,62.5 610,32.5 610,52.5 640,52.5 640,72.5 610,72.5 610,92.5" fill="#e74c3c"/>
+
+    <!-- Second stack of containers/volumes on the right -->
+    <rect x="660" y="77.5" width="60" height="30" rx="5" ry="5" fill="#3498db"/>
+    <rect x="660" y="47.5" width="60" height="30" rx="5" ry="5" fill="#2980b9"/>
+    <rect x="660" y="17.5" width="60" height="30" rx="5" ry="5" fill="#1f618d"/>
+  </svg>
