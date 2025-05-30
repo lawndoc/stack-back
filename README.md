@@ -1,4 +1,3 @@
-
 # stack-back
 
 [![docs](https://readthedocs.org/projects/stack-back/badge/?version=latest)](https://stack-back.readthedocs.io)
