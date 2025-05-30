@@ -53,7 +53,7 @@ def run(image: str = None, command: str = None, volumes: dict = None,
         for line in readlines(log_generator):
             fd.write(line)
             fd.write('\n')
-            logger.info(line)
+            print(line)
 
     container.wait()
     container.reload()
