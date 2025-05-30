@@ -53,10 +53,10 @@ services:
     labels:
       stack-back.mariadb: true
     environment:
-      - MYSQL_ROOT_PASSWORD=my-secret-pw
-      - MYSQL_DATABASE=mydb
-      - MYSQL_USER=myuser
-      - MYSQL_PASSWORD=mypassword
+      - MARIADB_ROOT_PASSWORD=my-secret-pw
+      - MARIADB_DATABASE=mydb
+      - MARIADB_USER=myuser
+      - MARIADB_PASSWORD=mypassword
     volumes:
       - mariadbdata:/var/lib/mysql
 
