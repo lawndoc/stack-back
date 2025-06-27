@@ -64,12 +64,6 @@ jobs:
           sed -i "s/release = .*/release = \"${clean_version}\"/" docs/conf.py
           uv lock --directory src --upgrade-package restic-compose-backup
 
-      - name: Commit changes
-        if: ${{ steps.changed.outcome == 'success' }}
-        uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
-        with:
-          commit_message: automated version bump
-
       - name: Push version tag
         if: ${{ steps.changed.outcome == 'success' }}
         uses: anothrNick/github-tag-action@e528bc2b9628971ce0e6f823f3052d1dcd9d512c # 1.73.0
