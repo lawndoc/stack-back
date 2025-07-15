@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class DiscordWebhookAlert(BaseAlert):
-    name = 'discord_webhook'
+    name = "discord_webhook"
     success_codes = [200]
 
     def __init__(self, webhook_url):
@@ -16,7 +16,7 @@ class DiscordWebhookAlert(BaseAlert):
 
     @classmethod
     def create_from_env(cls):
-        instance = cls(os.environ.get('DISCORD_WEBHOOK'))
+        instance = cls(os.environ.get("DISCORD_WEBHOOK"))
 
         if instance.properly_configured:
             return instance
@@ -34,15 +34,17 @@ class DiscordWebhookAlert(BaseAlert):
         #       The max description size is 2048
         #       Total embed size limit is 6000 characters (per embed)
         data = {
-            'embeds': [
+            "embeds": [
                 {
-                    'title': subject[-256:],
-                    'description': body[-2048:] if body else "",
+                    "title": subject[-256:],
+                    "description": body[-2048:] if body else "",
                 },
             ]
         }
-        response = requests.post(self.url, params={'wait': True}, json=data)
+        response = requests.post(self.url, params={"wait": True}, json=data)
         if response.status_code not in self.success_codes:
-            logger.error("Discord webhook failed: %s: %s", response.status_code, response.content)
+            logger.error(
+                "Discord webhook failed: %s: %s", response.status_code, response.content
+            )
         else:
-            logger.info('Discord webhook successful')
+            logger.info("Discord webhook successful")

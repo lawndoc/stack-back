@@ -396,7 +396,6 @@ class Mount:
 
 
 class RunningContainers:
-
     def __init__(self):
         all_containers = utils.list_containers()
         self.containers = []
