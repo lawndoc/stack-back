@@ -29,6 +29,13 @@ jobs:
           uv sync --locked --directory src/
           uv run --directory src/ pytest
 
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: "format --check --diff"
+          
   build:
     runs-on: ubuntu-latest
     steps:
