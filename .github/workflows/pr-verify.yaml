@@ -35,7 +35,7 @@ jobs:
       - uses: astral-sh/ruff-action@v3
         with:
           args: "format --check --diff"
-          
+          version-file: src/pyproject.toml # tooling generally assumes the pyproject will be at the root of the repo
   build:
     runs-on: ubuntu-latest
     steps:
