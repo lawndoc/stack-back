@@ -1,4 +1,5 @@
 """Generate test fixtures"""
+
 from datetime import datetime
 import hashlib
 import string
@@ -30,26 +31,30 @@ def containers(project="default", containers=[]):
                 ]
             }
     """
+
     def wrapper(*args, **kwargs):
         return [
-        {
-            'Id': container.get('id', generate_sha256()),
-            'Name': container.get('service') + '_' + ''.join(random.choice(string.ascii_lowercase) for i in range(16)),
-            'Config': {
-                'Image': container.get('image', 'image:latest'),
-                'Labels': {
-                    'com.docker.compose.oneoff': 'False',
-                    'com.docker.compose.project': project,
-                    'com.docker.compose.service': container['service'],
-                    **container.get('labels', {}),
+            {
+                "Id": container.get("id", generate_sha256()),
+                "Name": container.get("service")
+                + "_"
+                + "".join(random.choice(string.ascii_lowercase) for i in range(16)),
+                "Config": {
+                    "Image": container.get("image", "image:latest"),
+                    "Labels": {
+                        "com.docker.compose.oneoff": "False",
+                        "com.docker.compose.project": project,
+                        "com.docker.compose.service": container["service"],
+                        **container.get("labels", {}),
+                    },
                 },
-            },
-            'Mounts': container.get('mounts', []),
-            'State': {
-                "Status": "running",
-                "Running": True,
+                "Mounts": container.get("mounts", []),
+                "State": {
+                    "Status": "running",
+                    "Running": True,
+                },
             }
-        }
-        for container in containers]
+            for container in containers
+        ]
 
     return wrapper

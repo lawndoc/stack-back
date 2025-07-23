@@ -1,5 +1,3 @@
-
-
 class BaseAlert:
     name = None
 

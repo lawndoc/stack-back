@@ -9,8 +9,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-TRUE_VALUES = ['1', 'true', 'True', 'TRUE', True, 1]
-FALSE_VALUES = ['0', 'false', 'False', 'FALSE', False, 0]
+TRUE_VALUES = ["1", "true", "True", "TRUE", True, 1]
+FALSE_VALUES = ["0", "false", "False", "FALSE", False, 0]
 
 
 def docker_client():
@@ -22,8 +22,8 @@ def docker_client():
         DOCKER_CERT_PATH=''
     """
     # NOTE: Remove this fallback in 1.0
-    if not os.environ.get('DOCKER_HOST'):
-        os.environ['DOCKER_HOST'] = 'unix://tmp/docker.sock'
+    if not os.environ.get("DOCKER_HOST"):
+        os.environ["DOCKER_HOST"] = "unix://tmp/docker.sock"
 
     return docker.from_env()
 
@@ -53,33 +53,35 @@ def get_swarm_nodes():
         return []
 
 
-def remove_containers(containers: List['Container']):
+def remove_containers(containers: List["Container"]):
     client = docker_client()
-    logger.info('Attempting to delete stale backup process containers')
+    logger.info("Attempting to delete stale backup process containers")
     for container in containers:
-        logger.info(' -> deleting %s', container.name)
+        logger.info(" -> deleting %s", container.name)
         try:
             c = client.containers.get(container.name)
             c.remove()
         except Exception as ex:
             logger.exception(ex)
-            
-def stop_containers(containers: List['Container']):
+
+
+def stop_containers(containers: List["Container"]):
     client = docker_client()
-    logger.info('Attempting to stop containers labeled to stop during backup')
+    logger.info("Attempting to stop containers labeled to stop during backup")
     for container in containers:
-        logger.info(' -> stopping %s', container.name)
+        logger.info(" -> stopping %s", container.name)
         try:
             c = client.containers.get(container.name)
             c.stop()
         except Exception as ex:
             logger.exception(ex)
-            
-def start_containers(containers: List['Container']):
+
+
+def start_containers(containers: List["Container"]):
     client = docker_client()
-    logger.info('Attempting to restart containers that were stopped during backup')
+    logger.info("Attempting to restart containers that were stopped during backup")
     for container in containers:
-        logger.info(' -> starting %s', container.name)
+        logger.info(" -> starting %s", container.name)
         try:
             c = client.containers.get(container.name)
             c.start()
@@ -107,7 +109,7 @@ def strip_root(path):
     Example: /srv/data becomes srv/data
     """
     path = path.strip()
-    if path.startswith('/'):
+    if path.startswith("/"):
         return path[1:]
 
     return path

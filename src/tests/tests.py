@@ -3,14 +3,14 @@ import os
 import unittest
 from unittest import mock
 
-os.environ['RESTIC_REPOSITORY'] = "test"
-os.environ['RESTIC_PASSWORD'] = "password"
+os.environ["RESTIC_REPOSITORY"] = "test"
+os.environ["RESTIC_PASSWORD"] = "password"
 
 from restic_compose_backup import utils, config
 from restic_compose_backup.containers import RunningContainers
 import fixtures
 
-list_containers_func = 'restic_compose_backup.utils.list_containers'
+list_containers_func = "restic_compose_backup.utils.list_containers"
 
 
 class BaseTestCase(unittest.TestCase):
@@ -22,67 +22,78 @@ class BaseTestCase(unittest.TestCase):
 
     def createContainers(self):
         backup_hash = fixtures.generate_sha256()
-        os.environ['HOSTNAME'] = backup_hash[:8]
+        os.environ["HOSTNAME"] = backup_hash[:8]
         return [
             {
-                'id': backup_hash,
-                'service': 'backup',
+                "id": backup_hash,
+                "service": "backup",
             }
         ]
+
 
 class ResticBackupTests(BaseTestCase):
     def test_list_containers(self):
         """Test a basic container list"""
         containers = [
             {
-                'service': 'web',
-                'labels': {
-                    'moo': 1,
+                "service": "web",
+                "labels": {
+                    "moo": 1,
                 },
-                'mounts': [{
-                    'Source': 'moo',
-                    'Destination': 'moo',
-                    'Type': 'bind',
-                }]
+                "mounts": [
+                    {
+                        "Source": "moo",
+                        "Destination": "moo",
+                        "Type": "bind",
+                    }
+                ],
             },
             {
-                'service': 'mysql',
+                "service": "mysql",
             },
             {
-                'service': 'postgres',
+                "service": "postgres",
             },
         ]
 
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             test = utils.list_containers()
 
     def test_running_containers(self):
         containers = self.createContainers()
         containers += [
             {
-                'service': 'web',
-                'labels': {
-                    'stack-back.volumes': True,
-                    'test': 'test',
+                "service": "web",
+                "labels": {
+                    "stack-back.volumes": True,
+                    "test": "test",
                 },
-                'mounts': [{
-                    'Source': 'test',
-                    'Destination': 'test',
-                    'Type': 'bind',
-                }]
+                "mounts": [
+                    {
+                        "Source": "test",
+                        "Destination": "test",
+                        "Type": "bind",
+                    }
+                ],
             },
             {
-                'service': 'mysql',
+                "service": "mysql",
             },
             {
-                'service': 'postgres',
+                "service": "postgres",
             },
         ]
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             result = RunningContainers()
             self.assertEqual(len(result.containers), 4, msg="Three containers expected")
-            self.assertNotEqual(result.this_container, None, msg="No backup container found")
-            web_service = result.get_service('web')
+            self.assertNotEqual(
+                result.this_container, None, msg="No backup container found"
+            )
+            web_service = result.get_service("web")
             self.assertNotEqual(web_service, None)
             self.assertEqual(len(web_service.filter_mounts()), 1)
 
@@ -90,33 +101,42 @@ class ResticBackupTests(BaseTestCase):
         containers = self.createContainers()
         containers += [
             {
-                'service': 'web',
-                'labels': {
-                    'stack-back.volumes': True,
+                "service": "web",
+                "labels": {
+                    "stack-back.volumes": True,
                 },
-                'mounts': [{
-                    'Source': 'test',
-                    'Destination': 'test',
-                    'Type': 'bind',
-                }]
+                "mounts": [
+                    {
+                        "Source": "test",
+                        "Destination": "test",
+                        "Type": "bind",
+                    }
+                ],
             },
             {
-                'service': 'mysql',
-                'labels': {
-                    'stack-back.mysql': True,
+                "service": "mysql",
+                "labels": {
+                    "stack-back.mysql": True,
                 },
-                'mounts': [{
-                    'Source': 'data',
-                    'Destination': 'data',
-                    'Type': 'bind',
-                }]
+                "mounts": [
+                    {
+                        "Source": "data",
+                        "Destination": "data",
+                        "Type": "bind",
+                    }
+                ],
             },
         ]
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             cnt = RunningContainers()
             self.assertTrue(len(cnt.containers_for_backup()) == 2)
-            self.assertEqual(cnt.generate_backup_mounts(), {'test': {'bind': '/volumes/web/test', 'mode': 'ro'}})
-        mysql_service = cnt.get_service('mysql')
+            self.assertEqual(
+                cnt.generate_backup_mounts(),
+                {"test": {"bind": "/volumes/web/test", "mode": "ro"}},
+            )
+        mysql_service = cnt.get_service("mysql")
         self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
         mounts = mysql_service.filter_mounts()
         print(mounts)
@@ -127,16 +147,18 @@ class ResticBackupTests(BaseTestCase):
         containers = self.createContainers()
         containers += [
             {
-                'service': 'web',
-                'labels': {
-                    'stack-back.volumes': True,
+                "service": "web",
+                "labels": {
+                    "stack-back.volumes": True,
                 },
             },
         ]
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             cnt = RunningContainers()
             self.assertTrue(len(cnt.containers_for_backup()) == 1)
-        web_service = cnt.get_service('web')
+        web_service = cnt.get_service("web")
         self.assertNotEqual(web_service, None, msg="Web service not found")
         mounts = web_service.filter_mounts()
         print(mounts)
@@ -146,20 +168,22 @@ class ResticBackupTests(BaseTestCase):
         containers = self.createContainers()
         containers += [
             {
-                'service': 'mysql',
-                'labels': {
-                    'stack-back.mysql': True,
+                "service": "mysql",
+                "labels": {
+                    "stack-back.mysql": True,
                 },
-                'mounts': [{
-                    'Source': '/srv/mysql/data',
-                    'Destination': '/var/lib/mysql',
-                    'Type': 'bind',
-                }]
+                "mounts": [
+                    {
+                        "Source": "/srv/mysql/data",
+                        "Destination": "/var/lib/mysql",
+                        "Type": "bind",
+                    }
+                ],
             },
             {
                 "service": "mariadb",
-                'labels': {
-                    'stack-back.mariadb': True,
+                "labels": {
+                    "stack-back.mariadb": True,
                 },
                 "mounts": [
                     {
@@ -171,8 +195,8 @@ class ResticBackupTests(BaseTestCase):
             },
             {
                 "service": "postgres",
-                'labels': {
-                    'stack-back.postgres': True,
+                "labels": {
+                    "stack-back.postgres": True,
                 },
                 "mounts": [
                     {
@@ -183,15 +207,17 @@ class ResticBackupTests(BaseTestCase):
                 ],
             },
         ]
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             cnt = RunningContainers()
-        mysql_service = cnt.get_service('mysql')
+        mysql_service = cnt.get_service("mysql")
         self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
         self.assertTrue(mysql_service.mysql_backup_enabled)
-        mariadb_service = cnt.get_service('mariadb')
+        mariadb_service = cnt.get_service("mariadb")
         self.assertNotEqual(mariadb_service, None, msg="MariaDB service not found")
         self.assertTrue(mariadb_service.mariadb_backup_enabled)
-        postgres_service = cnt.get_service('postgres')
+        postgres_service = cnt.get_service("postgres")
         self.assertNotEqual(postgres_service, None, msg="Posgres service not found")
         self.assertTrue(postgres_service.postgresql_backup_enabled)
 
@@ -199,114 +225,124 @@ class ResticBackupTests(BaseTestCase):
         containers = self.createContainers()
         containers += [
             {
-                'service': 'web',
-                'labels': {
-                    'stack-back.volumes': True,
-                    'stack-back.volumes.include': 'media',
+                "service": "web",
+                "labels": {
+                    "stack-back.volumes": True,
+                    "stack-back.volumes.include": "media",
                 },
-                'mounts': [
+                "mounts": [
                     {
-                        'Source': '/srv/files/media',
-                        'Destination': '/srv/media',
-                        'Type': 'bind',
+                        "Source": "/srv/files/media",
+                        "Destination": "/srv/media",
+                        "Type": "bind",
                     },
                     {
-                        'Source': '/srv/files/stuff',
-                        'Destination': '/srv/stuff',
-                        'Type': 'bind',
+                        "Source": "/srv/files/stuff",
+                        "Destination": "/srv/stuff",
+                        "Type": "bind",
                     },
-                ]
+                ],
             },
         ]
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             cnt = RunningContainers()
 
-        web_service = cnt.get_service('web')
+        web_service = cnt.get_service("web")
         self.assertNotEqual(web_service, None, msg="Web service not found")
 
         mounts = web_service.filter_mounts()
         print(mounts)
         self.assertEqual(len(mounts), 1)
-        self.assertEqual(mounts[0].source, '/srv/files/media')
+        self.assertEqual(mounts[0].source, "/srv/files/media")
 
     def test_exclude(self):
         containers = self.createContainers()
         containers += [
             {
-                'service': 'web',
-                'labels': {
-                    'stack-back.volumes': True,
-                    'stack-back.volumes.exclude': 'stuff',
+                "service": "web",
+                "labels": {
+                    "stack-back.volumes": True,
+                    "stack-back.volumes.exclude": "stuff",
                 },
-                'mounts': [
+                "mounts": [
                     {
-                        'Source': '/srv/files/media',
-                        'Destination': '/srv/media',
-                        'Type': 'bind',
+                        "Source": "/srv/files/media",
+                        "Destination": "/srv/media",
+                        "Type": "bind",
                     },
                     {
-                        'Source': '/srv/files/stuff',
-                        'Destination': '/srv/stuff',
-                        'Type': 'bind',
+                        "Source": "/srv/files/stuff",
+                        "Destination": "/srv/stuff",
+                        "Type": "bind",
                     },
-                ]
+                ],
             },
         ]
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             cnt = RunningContainers()
 
-        web_service = cnt.get_service('web')
+        web_service = cnt.get_service("web")
         self.assertNotEqual(web_service, None, msg="Web service not found")
 
         mounts = web_service.filter_mounts()
         self.assertEqual(len(mounts), 1)
-        self.assertEqual(mounts[0].source, '/srv/files/media')
+        self.assertEqual(mounts[0].source, "/srv/files/media")
 
     def test_find_running_backup_container(self):
         containers = self.createContainers()
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             cnt = RunningContainers()
             self.assertFalse(cnt.backup_process_running)
 
         containers += [
             {
-                'service': 'backup_runner',
-                'labels': {
-                    'stack-back.process-default': 'True',
+                "service": "backup_runner",
+                "labels": {
+                    "stack-back.process-default": "True",
                 },
             },
         ]
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             cnt = RunningContainers()
             self.assertTrue(cnt.backup_process_running)
-            
+
     def test_stop_container_during_backup_volume(self):
         containers = self.createContainers()
         containers += [
             {
-                'service': 'web',
-                'labels': {
-                    'stack-back.volumes': True,
-                    'stack-back.volumes.include': 'sqlite',
-                    'stack-back.volumes.stop-during-backup': True,
+                "service": "web",
+                "labels": {
+                    "stack-back.volumes": True,
+                    "stack-back.volumes.include": "sqlite",
+                    "stack-back.volumes.stop-during-backup": True,
                 },
-                'mounts': [
+                "mounts": [
                     {
-                        'Source': '/srv/files/media',
-                        'Destination': '/srv/media',
-                        'Type': 'bind',
+                        "Source": "/srv/files/media",
+                        "Destination": "/srv/media",
+                        "Type": "bind",
                     },
                     {
-                        'Source': '/srv/files/sqlite',
-                        'Destination': '/srv/sqlite',
-                        'Type': 'bind',
+                        "Source": "/srv/files/sqlite",
+                        "Destination": "/srv/sqlite",
+                        "Type": "bind",
                     },
-                ]
+                ],
             }
         ]
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             cnt = RunningContainers()
-        web_service = cnt.get_service('web')
+        web_service = cnt.get_service("web")
         self.assertNotEqual(web_service, None, msg="Web service not found")
         self.assertTrue(web_service.stop_during_backup)
 
@@ -314,24 +350,29 @@ class ResticBackupTests(BaseTestCase):
         containers = self.createContainers()
         containers += [
             {
-                'service': 'mysql',
-                'labels': {
-                    'stack-back.mysql': True,
-                    'stack-back.volumes.stop-during-backup': True,
+                "service": "mysql",
+                "labels": {
+                    "stack-back.mysql": True,
+                    "stack-back.volumes.stop-during-backup": True,
                 },
-                'mounts': [{
-                    'Source': '/srv/mysql/data',
-                    'Destination': '/var/lib/mysql',
-                    'Type': 'bind',
-                }]
+                "mounts": [
+                    {
+                        "Source": "/srv/mysql/data",
+                        "Destination": "/var/lib/mysql",
+                        "Type": "bind",
+                    }
+                ],
             },
         ]
-        with mock.patch(list_containers_func, fixtures.containers(containers=containers)):
+        with mock.patch(
+            list_containers_func, fixtures.containers(containers=containers)
+        ):
             cnt = RunningContainers()
-        mysql_service = cnt.get_service('mysql')
+        mysql_service = cnt.get_service("mysql")
         self.assertNotEqual(mysql_service, None, msg="MySQL service not found")
         self.assertTrue(mysql_service.mysql_backup_enabled)
         self.assertFalse(mysql_service.stop_during_backup)
+
 
 class IncludeAllVolumesTests(BaseTestCase):
     @classmethod
@@ -439,7 +480,7 @@ class IncludeAllVolumesTests(BaseTestCase):
         mounts = postgres_service.filter_mounts()
         print(mounts)
         self.assertEqual(len(mounts), 0)
-        
+
     def test_redundant_volume_label(self):
         """Test that a container has a redundant volume label should be backed up"""
 
@@ -588,9 +629,9 @@ class IncludeAllVolumesTests(BaseTestCase):
         containers += [
             {
                 "service": "mysql",
-                'labels': {
-                    'stack-back.mysql': False,
-                    'stack-back.volumes': False,
+                "labels": {
+                    "stack-back.mysql": False,
+                    "stack-back.volumes": False,
                 },
                 "mounts": [
                     {
