@@ -413,7 +413,7 @@ class RunningContainers:
         if not self.this_container:
             raise ValueError("Cannot find metadata for backup container")
 
-        # Gather all running containers in the current compose setup
+        # Gather relevant containers
         for container_data in all_containers:
             container = Container(container_data)
 
@@ -429,24 +429,19 @@ class RunningContainers:
             if not container.is_running:
                 continue
 
+            # If not swarm mode we need to filter in compose project
+            if not config.swarm_mode and not config.include_all_compose_projects and container.project_name != self.this_container.project_name:
+                continue
+
             # Gather stop during backup containers
             if container.stop_during_backup:
-                if config.swarm_mode:
-                    self.stop_during_backup_containers.append(container)
-                else:
-                    if container.project_name == self.this_container.project_name:
-                        self.stop_during_backup_containers.append(container)
+                self.stop_during_backup_containers.append(container)
 
             # Detect running backup process container
             if container.is_backup_process_container:
                 self.backup_process_container = container
 
-            # --- Determine what containers should be evaluated
 
-            # If not swarm mode we need to filter in compose project
-            if not config.swarm_mode:
-                if container.project_name != self.this_container.project_name:
-                    continue
 
             # Containers started manually are not included
             if container.is_oneoff:
