@@ -12,7 +12,6 @@ def run(
     volumes: dict = None,
     environment: dict = None,
     labels: dict = None,
-    source_container_id: str = None,
 ):
     logger.info("Starting backup container")
     client = utils.docker_client()
@@ -21,11 +20,9 @@ def run(
         image,
         command,
         labels=labels,
-        # auto_remove=True,  # We remove the container further down
         detach=True,
         environment=environment + ["BACKUP_PROCESS_CONTAINER=true"],
         volumes=volumes,
-        network_mode=f"container:{source_container_id}",  # Reuse original container's network stack.
         working_dir=os.getcwd(),
         tty=True,
     )

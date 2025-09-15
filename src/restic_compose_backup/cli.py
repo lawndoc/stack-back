@@ -169,10 +169,8 @@ def backup(config, containers):
             command="rcb start-backup-process",
             volumes=volumes,
             environment=containers.this_container.environment,
-            source_container_id=containers.this_container.id,
             labels={
                 containers.backup_process_label: "True",
-                "com.docker.compose.project": containers.project_name,
             },
         )
     except Exception as ex:
