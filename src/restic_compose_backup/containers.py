@@ -1,6 +1,6 @@
-import os
 import logging
 from pathlib import Path
+import socket
 from typing import List
 
 from restic_compose_backup import enums, utils
@@ -407,7 +407,7 @@ class RunningContainers:
         # Find the container we are running in.
         # If we don't have this information we cannot continue
         for container_data in all_containers:
-            if container_data.get("Id").startswith(os.environ["HOSTNAME"]):
+            if container_data.get("Id").startswith(socket.gethostname()):
                 self.this_container = Container(container_data)
 
         if not self.this_container:
