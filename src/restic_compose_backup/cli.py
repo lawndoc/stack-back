@@ -171,6 +171,7 @@ def backup(config, containers):
             environment=containers.this_container.environment,
             labels={
                 containers.backup_process_label: "True",
+                "com.docker.compose.project": containers.project_name,
             },
         )
     except Exception as ex:
