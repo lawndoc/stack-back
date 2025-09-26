@@ -16,9 +16,10 @@ class BaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.backup_hash = fixtures.generate_sha256()
-        cls.hostname = cls.backup_hash[:8]
 
-        cls.hostname_patcher = mock.patch("socket.gethostname", return_value=cls.hostname)
+        cls.hostname_patcher = mock.patch(
+            "socket.gethostname", return_value=cls.backup_hash[:8]
+        )
         cls.hostname_patcher.start()
 
     @classmethod
