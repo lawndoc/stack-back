@@ -430,7 +430,11 @@ class RunningContainers:
                 continue
 
             # If not swarm mode we need to filter in compose project
-            if not config.swarm_mode and not config.include_all_compose_projects and container.project_name != self.this_container.project_name:
+            if (
+                not config.swarm_mode
+                and not config.include_all_compose_projects
+                and container.project_name != self.this_container.project_name
+            ):
                 continue
 
             # Gather stop during backup containers
@@ -440,8 +444,6 @@ class RunningContainers:
             # Detect running backup process container
             if container.is_backup_process_container:
                 self.backup_process_container = container
-
-
 
             # Containers started manually are not included
             if container.is_oneoff:
