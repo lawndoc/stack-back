@@ -57,6 +57,14 @@ class Container:
         return self._data.get("Id")
 
     @property
+    def network(self) -> str:
+        """str: The name of the network the container is connected to"""
+        network_settings = self._data.get("NetworkSettings", {})
+        first_network = list(network_settings.get("Networks", {}).values())[0]
+        network_name = first_network.get("NetworkID", "")
+        return network_name
+
+    @property
     def hostname(self) -> str:
         """Hostname of the container"""
         return self.get_config("Hostname", default=self.id[0:12])

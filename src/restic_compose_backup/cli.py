@@ -138,7 +138,7 @@ def status(config, containers):
     logger.info("-" * 67)
 
 
-def backup(config, containers):
+def backup(config, containers: RunningContainers):
     """Request a backup to start"""
     # Make sure we don't spawn multiple backup processes
     if containers.backup_process_running:
@@ -169,6 +169,7 @@ def backup(config, containers):
             command="rcb start-backup-process",
             volumes=volumes,
             environment=containers.this_container.environment,
+            source_container_network=containers.this_container.network,
             labels={
                 containers.backup_process_label: "True",
                 "com.docker.compose.project": containers.project_name,

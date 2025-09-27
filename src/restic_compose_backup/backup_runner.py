@@ -12,6 +12,7 @@ def run(
     volumes: dict = None,
     environment: dict = None,
     labels: dict = None,
+    source_container_network: str = None,
 ):
     logger.info("Starting backup container")
     client = utils.docker_client()
@@ -23,6 +24,7 @@ def run(
         detach=True,
         environment=environment + ["BACKUP_PROCESS_CONTAINER=true"],
         volumes=volumes,
+        network=source_container_network,
         working_dir=os.getcwd(),
         tty=True,
     )
