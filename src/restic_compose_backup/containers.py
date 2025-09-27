@@ -57,17 +57,22 @@ class Container:
         return self._data.get("Id")
 
     @property
-    def network(self) -> str:
-        """str: The name of the network the container is connected to"""
-        network_settings = self._data.get("NetworkSettings", {})
-        first_network = list(network_settings.get("Networks", {}).values())[0]
-        network_name = first_network.get("NetworkID", "")
-        return network_name
+    def network_details(self) -> dict:
+        """dict: The network details of the container"""
+        network_settings: dict = self._data.get("NetworkSettings", {})
+        networks: dict = network_settings.get("Networks", {})
+        first_network = list(networks.values())[0]
+        return first_network
 
     @property
-    def hostname(self) -> str:
-        """Hostname of the container"""
-        return self.get_config("Hostname", default=self.id[0:12])
+    def network_name(self) -> str:
+        """str: The name of the network the container is connected to"""
+        return self.network_details.get("NetworkID", "")
+
+    @property
+    def ip_address(self) -> str:
+        """str: IP address of the container"""
+        return self.network_details.get("IPAddress", "")
 
     @property
     def image(self) -> str:

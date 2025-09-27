@@ -21,7 +21,7 @@ class MariadbContainer(Container):
             username = self.get_config_env("MARIADB_USER")
             password = self.get_config_env("MARIADB_PASSWORD")
         return {
-            "host": self.hostname,
+            "host": self.ip_address,
             "username": username,
             "password": password,
             "port": "3306",
@@ -91,7 +91,7 @@ class MysqlContainer(Container):
             username = self.get_config_env("MYSQL_USER")
             password = self.get_config_env("MYSQL_PASSWORD")
         return {
-            "host": self.hostname,
+            "host": self.ip_address,
             "username": username,
             "password": password,
             "port": "3306",
@@ -155,7 +155,7 @@ class PostgresContainer(Container):
     def get_credentials(self) -> dict:
         """dict: get credentials for the service"""
         return {
-            "host": self.hostname,
+            "host": self.ip_address,
             "username": self.get_config_env("POSTGRES_USER"),
             "password": self.get_config_env("POSTGRES_PASSWORD"),
             "port": "5432",
