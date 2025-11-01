@@ -58,21 +58,21 @@ class Container:
 
     @property
     def network_details(self) -> dict:
-        """dict: The network details of the container"""
+        """dict: The networks the container is connected to"""
         network_settings: dict = self._data.get("NetworkSettings", {})
         networks: dict = network_settings.get("Networks", {})
-        first_network = list(networks.values())[0]
-        return first_network
+        return networks
 
     @property
-    def network_name(self) -> str:
-        """str: The name of the network the container is connected to"""
-        return self.network_details.get("NetworkID", "")
+    def network_names(self) -> list[str]:
+        """list[str]: Names of networks the container is connected to"""
+        return list(self.network_details.keys())
 
     @property
     def ip_address(self) -> str:
         """str: IP address of the container"""
-        return self.network_details.get("IPAddress", "")
+        first_network: dict = list(self.network_details.values())[0]
+        return first_network.get("IPAddress", "")
 
     @property
     def image(self) -> str:
@@ -483,9 +483,13 @@ class RunningContainers:
         """Is the backup process container running?"""
         return self.backup_process_container is not None
 
-    def containers_for_backup(self):
+    def containers_for_backup(self) -> list[Container]:
         """Obtain all containers with backup enabled"""
         return [container for container in self.containers if container.backup_enabled]
+
+    def networks_for_backup(self) -> list[str]:
+        """Obtain all networks needed for backup"""
+        return [network for container in self.containers_for_backup() for network in container.network_names]
 
     def generate_backup_mounts(self, dest_prefix="/volumes") -> dict:
         """Generate mounts for backup for the entire compose setup"""
