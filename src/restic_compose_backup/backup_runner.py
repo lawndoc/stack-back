@@ -12,7 +12,7 @@ def run(
     volumes: dict = None,
     environment: dict = None,
     labels: dict = None,
-    network_names: list[str] = [],
+    network_names: set[str] = set(),
 ):
     logger.info("Starting backup container")
     client = utils.docker_client()

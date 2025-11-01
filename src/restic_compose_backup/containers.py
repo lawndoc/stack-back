@@ -483,9 +483,9 @@ class RunningContainers:
         """Obtain all containers with backup enabled"""
         return [container for container in self.containers if container.backup_enabled]
 
-    def networks_for_backup(self) -> list[str]:
+    def networks_for_backup(self) -> set[str]:
         """Obtain all networks needed for backup"""
-        return [container.network_name for container in self.containers_for_backup()]
+        return {container.network_name for container in self.containers_for_backup()}
 
     def generate_backup_mounts(self, dest_prefix="/volumes") -> dict:
         """Generate mounts for backup for the entire compose setup"""
