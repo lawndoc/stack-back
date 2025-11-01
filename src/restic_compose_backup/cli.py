@@ -82,6 +82,10 @@ def status(config, containers):
         utils.is_true(config.exclude_bind_mounts),
     )
     logger.debug(
+        "Include all compose projects?: %s",
+        utils.is_true(config.include_all_compose_projects),
+    )
+    logger.debug(
         f"Use cache for integrity check?: {utils.is_true(config.check_with_cache)}"
     )
     logger.info("Checking docker availability")
