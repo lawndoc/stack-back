@@ -35,6 +35,10 @@ class Container:
         self._include = self._parse_pattern(self.get_label(enums.LABEL_VOLUMES_INCLUDE))
         self._exclude = self._parse_pattern(self.get_label(enums.LABEL_VOLUMES_EXCLUDE))
 
+        network_settings: dict = data.get("NetworkSettings", {})
+        networks: dict = network_settings.get("Networks", {})
+        self._network_details: dict = list(networks.values())[0]
+
     @property
     def instance(self) -> "Container":
         """Container: Get a service specific subclass instance"""
@@ -57,22 +61,14 @@ class Container:
         return self._data.get("Id")
 
     @property
-    def network_details(self) -> dict:
-        """dict: The networks the container is connected to"""
-        network_settings: dict = self._data.get("NetworkSettings", {})
-        networks: dict = network_settings.get("Networks", {})
-        return networks
-
-    @property
-    def network_names(self) -> list[str]:
-        """list[str]: Names of networks the container is connected to"""
-        return list(self.network_details.keys())
+    def network_name(self) -> str:
+        """str: Name of the first network the container is connected to"""
+        return self._network_details.get("NetworkID", "")
 
     @property
     def ip_address(self) -> str:
-        """str: IP address of the container"""
-        first_network: dict = list(self.network_details.values())[0]
-        return first_network.get("IPAddress", "")
+        """str: IP address the container has on its first network"""
+        return self._network_details.get("IPAddress", "")
 
     @property
     def image(self) -> str:
@@ -489,7 +485,7 @@ class RunningContainers:
 
     def networks_for_backup(self) -> list[str]:
         """Obtain all networks needed for backup"""
-        return [network for container in self.containers_for_backup() for network in container.network_names]
+        return [container.network_name for container in self.containers_for_backup()]
 
     def generate_backup_mounts(self, dest_prefix="/volumes") -> dict:
         """Generate mounts for backup for the entire compose setup"""
