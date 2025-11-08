@@ -53,6 +53,12 @@ def containers(project="default", containers=[]):
                     "Status": "running",
                     "Running": True,
                 },
+                "NetworkSettings": {
+                    "Networks": {
+                        "NetworkID": "network-id",
+                        "IPAddress": "10.0.0.1",
+                    }
+                },
             }
             for container in containers
         ]
