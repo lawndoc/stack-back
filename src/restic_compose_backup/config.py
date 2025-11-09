@@ -27,10 +27,14 @@ class Config:
             os.environ.get("MAINTENANCE_COMMAND") or self.default_maintenance_command
         )
         self.swarm_mode = os.environ.get("SWARM_MODE") or False
-        self.include_project_name = os.environ.get("INCLUDE_PROJECT_NAME") or False
         self.exclude_bind_mounts = os.environ.get("EXCLUDE_BIND_MOUNTS") or False
         self.include_all_compose_projects = (
             os.environ.get("INCLUDE_ALL_COMPOSE_PROJECTS") or False
+        )
+        self.include_project_name = (
+            os.environ.get("INCLUDE_ALL_COMPOSE_PROJECTS")
+            or os.environ.get("INCLUDE_PROJECT_NAME")
+            or False
         )
         self.include_all_volumes = os.environ.get("INCLUDE_ALL_VOLUMES") or False
         if self.include_all_volumes:

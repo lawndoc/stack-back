@@ -35,10 +35,6 @@ class Container:
         self._include = self._parse_pattern(self.get_label(enums.LABEL_VOLUMES_INCLUDE))
         self._exclude = self._parse_pattern(self.get_label(enums.LABEL_VOLUMES_EXCLUDE))
 
-        network_settings: dict = data.get("NetworkSettings", {})
-        networks: dict = network_settings.get("Networks", {})
-        self._network_details: dict = list(networks.values())[0]
-
     @property
     def instance(self) -> "Container":
         """Container: Get a service specific subclass instance"""
@@ -59,16 +55,6 @@ class Container:
     def id(self) -> str:
         """str: The id of the container"""
         return self._data.get("Id")
-
-    @property
-    def network_name(self) -> str:
-        """str: Name of the first network the container is connected to"""
-        return self._network_details.get("NetworkID", "")
-
-    @property
-    def ip_address(self) -> str:
-        """str: IP address the container has on its first network"""
-        return self._network_details.get("IPAddress", "")
 
     @property
     def image(self) -> str:
@@ -463,8 +449,8 @@ class RunningContainers:
             if container.is_oneoff:
                 continue
 
-            # Do not include the backup process container
-            if container == self.backup_process_container:
+            # Do not include the stack-back and backup process containers
+            if "stack-back" in container.image:
                 continue
 
             self.containers.append(container)
@@ -487,10 +473,6 @@ class RunningContainers:
     def containers_for_backup(self) -> list[Container]:
         """Obtain all containers with backup enabled"""
         return [container for container in self.containers if container.backup_enabled]
-
-    def networks_for_backup(self) -> set[str]:
-        """Obtain all networks needed for backup"""
-        return {container.network_name for container in self.containers_for_backup()}
 
     def generate_backup_mounts(self, dest_prefix="/volumes") -> dict:
         """Generate mounts for backup for the entire compose setup"""

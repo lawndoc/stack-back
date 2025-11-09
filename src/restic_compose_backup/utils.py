@@ -3,6 +3,7 @@ import logging
 from typing import List, TYPE_CHECKING
 from contextlib import contextmanager
 import docker
+from docker import DockerClient
 
 if TYPE_CHECKING:
     from restic_compose_backup.containers import Container
@@ -13,7 +14,7 @@ TRUE_VALUES = ["1", "true", "True", "TRUE", True, 1]
 FALSE_VALUES = ["0", "false", "False", "FALSE", False, 0]
 
 
-def docker_client():
+def docker_client() -> DockerClient:
     """
     Create a docker client from the following environment variables::
 

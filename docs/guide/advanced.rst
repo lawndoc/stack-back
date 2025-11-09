@@ -21,8 +21,7 @@ Inner workings
 * Each service in the compose setup is configured with a label
   to enable backup of volumes or databases
 * When backup starts a new instance of the container is created
-  mapping in all the needed volumes. It will copy networks etc
-  to ensure databases can be reached
+  mapping in all the needed volumes.
 * Volumes are mounted to `/volumes/<service_name>/<path>`
   in the backup process container. `/volumes` is pushed into restic
 * Databases are backed up from stdin / dumps into restic using path

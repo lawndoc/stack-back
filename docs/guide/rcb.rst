@@ -96,7 +96,7 @@ backup
 ~~~~~~
 
 Starts a backup process by spawning a new docker container.
-The network stack, mounted volumes, env vars etc. from the
+The mounted volumes, env vars etc. from the
 backup service are copied to this container.
 
 We attach to this container and stream the logs and delete

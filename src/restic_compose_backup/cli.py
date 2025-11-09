@@ -126,10 +126,10 @@ def status(config, containers):
             logger.info(
                 " - %s (is_ready=%s) -> %s",
                 instance.container_type,
-                ping == 0,
+                ping,
                 instance.backup_destination_path(),
             )
-            if ping != 0:
+            if not ping:
                 logger.error(
                     "Database '%s' in service %s cannot be reached",
                     instance.container_type,
@@ -173,7 +173,6 @@ def backup(config, containers: RunningContainers):
             command="rcb start-backup-process",
             volumes=volumes,
             environment=containers.this_container.environment,
-            network_names=containers.networks_for_backup(),
             labels={
                 containers.backup_process_label: "True",
                 "com.docker.compose.project": containers.project_name,
@@ -254,10 +253,11 @@ def start_backup_process(config, containers):
         if container.database_backup_enabled:
             try:
                 instance = container.instance
-                logger.info(
-                    "Backing up %s in service %s",
+                logger.debug(
+                    "Backing up %s in service %s from project %s",
                     instance.container_type,
                     instance.service_name,
+                    instance.project_name,
                 )
                 result = instance.backup()
                 logger.debug("Exit code: %s", result)
