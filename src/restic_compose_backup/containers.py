@@ -496,6 +496,9 @@ class RunningContainers:
         """Generate mounts for backup for the entire compose setup"""
         mounts = {}
         for container in self.containers_for_backup():
+            # Skip the backup container itself to avoid remapping its mounts (especially docker socket)
+            if container == self.this_container:
+                continue
             if container.volume_backup_enabled:
                 mounts.update(
                     container.volumes_for_backup(source_prefix=dest_prefix+"/"+container.project_name, mode="ro")
