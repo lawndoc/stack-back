@@ -173,7 +173,6 @@ def backup(config, containers: RunningContainers):
             command="rcb start-backup-process",
             volumes=volumes,
             environment=containers.this_container.environment,
-            network_names=containers.networks_for_backup(),
             labels={
                 containers.backup_process_label: "True",
                 "com.docker.compose.project": containers.project_name,

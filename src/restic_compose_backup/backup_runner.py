@@ -12,12 +12,11 @@ def run(
     volumes: dict = None,
     environment: dict = None,
     labels: dict = None,
-    network_names: set[str] = set(),
 ):
     logger.info("Starting backup container")
     client = utils.docker_client()
 
-    container = client.containers.create(
+    container = client.containers.run(
         image,
         command,
         labels=labels,
@@ -27,12 +26,6 @@ def run(
         working_dir=os.getcwd(),
         tty=True,
     )
-
-    for network_name in network_names:
-        network = client.networks.get(network_name)
-        network.connect(container)
-
-    container.start()
 
     logger.info("Backup process container: %s", container.name)
     log_generator = container.logs(stdout=True, stderr=True, stream=True, follow=True)
