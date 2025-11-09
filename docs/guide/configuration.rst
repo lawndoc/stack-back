@@ -257,6 +257,16 @@ docker volumes. Often host binds are only used
 for mapping in configuration. This saves the user
 from manually excluding these bind volumes.
 
+INCLUDE_ALL_COMPOSE_PROJECTS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If defined all compose projects found will be available for backup.
+By default only the compose project the backup container is
+running in is available for backup.
+
+This is useful when not wanting to run a separate backup container
+for each compose project.
+
 SWARM_MODE
 ~~~~~~~~~~
 

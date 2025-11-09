@@ -9,6 +9,7 @@
 # │ │ │ │ │
 # * * * * * command to execute
 """
+
 QUOTE_CHARS = ['"', "'"]
 
 
@@ -25,16 +26,16 @@ def generate_crontab(config):
     else:
         backup_schedule = config.default_crontab_schedule
 
-    crontab = f'{backup_schedule} {backup_command}\n'
-    
+    crontab = f"{backup_schedule} {backup_command}\n"
+
     maintenance_command = config.maintenance_command.strip()
     maintenance_schedule = config.maintenance_schedule
-    
+
     if maintenance_schedule:
         maintenance_schedule = maintenance_schedule.strip()
         maintenance_schedule = strip_quotes(maintenance_schedule)
         if validate_schedule(maintenance_schedule):
-            crontab += f'{maintenance_schedule} {maintenance_command}\n'
+            crontab += f"{maintenance_schedule} {maintenance_command}\n"
 
     return crontab
 
@@ -46,7 +47,7 @@ def validate_schedule(schedule: str):
         return False
 
     for p in parts:
-        if p != '*' and not p.isdigit():
+        if p != "*" and not p.isdigit():
             return False
 
     minute, hour, day, month, weekday = parts
@@ -63,7 +64,7 @@ def validate_schedule(schedule: str):
 
 
 def validate_field(value, min, max):
-    if value == '*':
+    if value == "*":
         return
 
     i = int(value)

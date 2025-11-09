@@ -1,6 +1,6 @@
-import os
 import logging
 from pathlib import Path
+import socket
 from typing import List
 
 from restic_compose_backup import enums, utils
@@ -35,6 +35,10 @@ class Container:
         self._include = self._parse_pattern(self.get_label(enums.LABEL_VOLUMES_INCLUDE))
         self._exclude = self._parse_pattern(self.get_label(enums.LABEL_VOLUMES_EXCLUDE))
 
+        network_settings: dict = data.get("NetworkSettings", {})
+        networks: dict = network_settings.get("Networks", {})
+        self._network_details: dict = list(networks.values())[0]
+
     @property
     def instance(self) -> "Container":
         """Container: Get a service specific subclass instance"""
@@ -57,9 +61,14 @@ class Container:
         return self._data.get("Id")
 
     @property
-    def hostname(self) -> str:
-        """Hostname of the container"""
-        return self.get_config("Hostname", default=self.id[0:12])
+    def network_name(self) -> str:
+        """str: Name of the first network the container is connected to"""
+        return self._network_details.get("NetworkID", "")
+
+    @property
+    def ip_address(self) -> str:
+        """str: IP address the container has on its first network"""
+        return self._network_details.get("IPAddress", "")
 
     @property
     def image(self) -> str:
@@ -396,7 +405,6 @@ class Mount:
 
 
 class RunningContainers:
-
     def __init__(self):
         all_containers = utils.list_containers()
         self.containers = []
@@ -408,13 +416,13 @@ class RunningContainers:
         # Find the container we are running in.
         # If we don't have this information we cannot continue
         for container_data in all_containers:
-            if container_data.get("Id").startswith(os.environ["HOSTNAME"]):
+            if container_data.get("Id").startswith(socket.gethostname()):
                 self.this_container = Container(container_data)
 
         if not self.this_container:
             raise ValueError("Cannot find metadata for backup container")
 
-        # Gather all running containers in the current compose setup
+        # Gather relevant containers
         for container_data in all_containers:
             container = Container(container_data)
 
@@ -430,24 +438,21 @@ class RunningContainers:
             if not container.is_running:
                 continue
 
+            # If not swarm mode we need to filter in compose project
+            if (
+                not config.swarm_mode
+                and not config.include_all_compose_projects
+                and container.project_name != self.this_container.project_name
+            ):
+                continue
+
             # Gather stop during backup containers
             if container.stop_during_backup:
-                if config.swarm_mode:
-                    self.stop_during_backup_containers.append(container)
-                else:
-                    if container.project_name == self.this_container.project_name:
-                        self.stop_during_backup_containers.append(container)
+                self.stop_during_backup_containers.append(container)
 
             # Detect running backup process container
             if container.is_backup_process_container:
                 self.backup_process_container = container
-
-            # --- Determine what containers should be evaluated
-
-            # If not swarm mode we need to filter in compose project
-            if not config.swarm_mode:
-                if container.project_name != self.this_container.project_name:
-                    continue
 
             # Containers started manually are not included
             if container.is_oneoff:
@@ -474,9 +479,13 @@ class RunningContainers:
         """Is the backup process container running?"""
         return self.backup_process_container is not None
 
-    def containers_for_backup(self):
+    def containers_for_backup(self) -> list[Container]:
         """Obtain all containers with backup enabled"""
         return [container for container in self.containers if container.backup_enabled]
+
+    def networks_for_backup(self) -> set[str]:
+        """Obtain all networks needed for backup"""
+        return {container.network_name for container in self.containers_for_backup()}
 
     def generate_backup_mounts(self, dest_prefix="/volumes") -> dict:
         """Generate mounts for backup for the entire compose setup"""

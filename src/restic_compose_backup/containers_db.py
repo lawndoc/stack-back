@@ -10,32 +10,32 @@ from restic_compose_backup import utils
 
 
 class MariadbContainer(Container):
-    container_type = 'mariadb'
+    container_type = "mariadb"
 
     def get_credentials(self) -> dict:
         """dict: get credentials for the service"""
-        password = self.get_config_env('MARIADB_ROOT_PASSWORD')
+        password = self.get_config_env("MARIADB_ROOT_PASSWORD")
         if password is not None:
             username = "root"
         else:
-            username = self.get_config_env('MARIADB_USER')
-            password = self.get_config_env('MARIADB_PASSWORD')
+            username = self.get_config_env("MARIADB_USER")
+            password = self.get_config_env("MARIADB_PASSWORD")
         return {
-            'host': self.hostname,
-            'username': username,
-            'password': password,
-            'port': "3306",
+            "host": self.ip_address,
+            "username": username,
+            "password": password,
+            "port": "3306",
         }
 
     def ping(self) -> bool:
         """Check the availability of the service"""
         creds = self.get_credentials()
 
-        with utils.environment('MYSQL_PWD', creds['password']):
+        with utils.environment("MYSQL_PWD", creds["password"]):
             return commands.ping_mariadb(
-                creds['host'],
-                creds['port'],
-                creds['username'],
+                creds["host"],
+                creds["port"],
+                creds["username"],
             )
 
     def dump_command(self) -> list:
@@ -51,14 +51,14 @@ class MariadbContainer(Container):
             "--single-transaction",
             "--order-by-primary",
             "--compact",
-            "--force"
+            "--force",
         ]
 
     def backup(self):
         config = Config()
         creds = self.get_credentials()
 
-        with utils.environment('MYSQL_PWD', creds['password']):
+        with utils.environment("MYSQL_PWD", creds["password"]):
             return restic.backup_from_stdin(
                 config.repository,
                 self.backup_destination_path(),
@@ -80,32 +80,32 @@ class MariadbContainer(Container):
 
 
 class MysqlContainer(Container):
-    container_type = 'mysql'
+    container_type = "mysql"
 
     def get_credentials(self) -> dict:
         """dict: get credentials for the service"""
-        password = self.get_config_env('MYSQL_ROOT_PASSWORD')
+        password = self.get_config_env("MYSQL_ROOT_PASSWORD")
         if password is not None:
             username = "root"
         else:
-            username = self.get_config_env('MYSQL_USER')
-            password = self.get_config_env('MYSQL_PASSWORD')
+            username = self.get_config_env("MYSQL_USER")
+            password = self.get_config_env("MYSQL_PASSWORD")
         return {
-            'host': self.hostname,
-            'username': username,
-            'password': password,
-            'port': "3306",
+            "host": self.ip_address,
+            "username": username,
+            "password": password,
+            "port": "3306",
         }
 
     def ping(self) -> bool:
         """Check the availability of the service"""
         creds = self.get_credentials()
 
-        with utils.environment('MYSQL_PWD', creds['password']):
+        with utils.environment("MYSQL_PWD", creds["password"]):
             return commands.ping_mysql(
-                creds['host'],
-                creds['port'],
-                creds['username'],
+                creds["host"],
+                creds["port"],
+                creds["username"],
             )
 
     def dump_command(self) -> list:
@@ -121,14 +121,14 @@ class MysqlContainer(Container):
             "--single-transaction",
             "--order-by-primary",
             "--compact",
-            "--force"
+            "--force",
         ]
 
     def backup(self):
         config = Config()
         creds = self.get_credentials()
 
-        with utils.environment('MYSQL_PWD', creds['password']):
+        with utils.environment("MYSQL_PWD", creds["password"]):
             return restic.backup_from_stdin(
                 config.repository,
                 self.backup_destination_path(),
@@ -150,26 +150,26 @@ class MysqlContainer(Container):
 
 
 class PostgresContainer(Container):
-    container_type = 'postgres'
+    container_type = "postgres"
 
     def get_credentials(self) -> dict:
         """dict: get credentials for the service"""
         return {
-            'host': self.hostname,
-            'username': self.get_config_env('POSTGRES_USER'),
-            'password': self.get_config_env('POSTGRES_PASSWORD'),
-            'port': "5432",
-            'database': self.get_config_env('POSTGRES_DB'),
+            "host": self.ip_address,
+            "username": self.get_config_env("POSTGRES_USER"),
+            "password": self.get_config_env("POSTGRES_PASSWORD"),
+            "port": "5432",
+            "database": self.get_config_env("POSTGRES_DB"),
         }
 
     def ping(self) -> bool:
         """Check the availability of the service"""
         creds = self.get_credentials()
         return commands.ping_postgres(
-            creds['host'],
-            creds['port'],
-            creds['username'],
-            creds['password'],
+            creds["host"],
+            creds["port"],
+            creds["username"],
+            creds["password"],
         )
 
     def dump_command(self) -> list:
@@ -181,14 +181,14 @@ class PostgresContainer(Container):
             f"--host={creds['host']}",
             f"--port={creds['port']}",
             f"--username={creds['username']}",
-            creds['database'],
+            creds["database"],
         ]
 
     def backup(self):
         config = Config()
         creds = self.get_credentials()
 
-        with utils.environment('PGPASSWORD', creds['password']):
+        with utils.environment("PGPASSWORD", creds["password"]):
             return restic.backup_from_stdin(
                 config.repository,
                 self.backup_destination_path(),
