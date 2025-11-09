@@ -27,16 +27,18 @@ def ping_mysql(host, port, username) -> int:
 
 def ping_mariadb(host, port, username) -> int:
     """Check if the mariadb is up and can be reached"""
-    return run([
-        'mariadb-admin',
-        'ping',
-        '--host',
-        host,
-        '--port',
-        port,
-        '--user',
-        username,
-    ])
+    return run(
+        [
+            "mariadb-admin",
+            "ping",
+            "--host",
+            host,
+            "--port",
+            port,
+            "--user",
+            username,
+        ]
+    )
 
 
 def ping_postgres(host, port, username, password) -> int:
