@@ -55,23 +55,32 @@ def ping_postgres(container_id, host, port, username, password) -> int:
             f"--host={host}",
             f"--port={port}",
             f"--username={username}",
-        ]
+        ],
     )
 
-def docker_exec(container_id: str, cmd: List[str], environment: Union[dict, list] = []) -> int:
+
+def docker_exec(
+    container_id: str, cmd: List[str], environment: Union[dict, list] = []
+) -> int:
     """Execute a command within the given container"""
     client = utils.docker_client()
-    logger.debug('docker exec inside %s: %s', container_id, ' '.join(cmd))
-    exit_code, (stdout, stderr) = client.containers.get(container_id).exec_run(cmd, demux=True, environment=environment)
+    logger.debug("docker exec inside %s: %s", container_id, " ".join(cmd))
+    exit_code, (stdout, stderr) = client.containers.get(container_id).exec_run(
+        cmd, demux=True, environment=environment
+    )
 
     if stdout:
-        log_std('stdout', stdout.decode(),
-                logging.DEBUG if exit_code == 0 else logging.ERROR)
+        log_std(
+            "stdout",
+            stdout.decode(),
+            logging.DEBUG if exit_code == 0 else logging.ERROR,
+        )
 
     if stderr:
-        log_std('stderr', stderr.decode(), logging.ERROR)
+        log_std("stderr", stderr.decode(), logging.ERROR)
 
     return exit_code
+
 
 def run(cmd: List[str]) -> int:
     """Run a command with parameters"""

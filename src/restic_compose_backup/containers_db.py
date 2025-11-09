@@ -30,14 +30,17 @@ class MariadbContainer(Container):
     def ping(self) -> bool:
         """Check the availability of the service"""
         creds = self.get_credentials()
-        
-        return commands.ping_mariadb(
-            self.id,
-            creds["host"],
-            creds["port"],
-            creds["username"],
-            creds["password"],
-        ) == 0
+
+        return (
+            commands.ping_mariadb(
+                self.id,
+                creds["host"],
+                creds["port"],
+                creds["username"],
+                creds["password"],
+            )
+            == 0
+        )
 
     def dump_command(self) -> list:
         """list: create a dump command restic and use to send data through stdin"""
@@ -101,13 +104,16 @@ class MysqlContainer(Container):
         """Check the availability of the service"""
         creds = self.get_credentials()
 
-        return commands.ping_mysql(
-            self.id,
-            creds["host"],
-            creds["port"],
-            creds["username"],
-            creds["password"],
-        ) == 0
+        return (
+            commands.ping_mysql(
+                self.id,
+                creds["host"],
+                creds["port"],
+                creds["username"],
+                creds["password"],
+            )
+            == 0
+        )
 
     def dump_command(self) -> list:
         """list: create a dump command restic and use to send data through stdin"""
@@ -165,13 +171,16 @@ class PostgresContainer(Container):
     def ping(self) -> bool:
         """Check the availability of the service"""
         creds = self.get_credentials()
-        return commands.ping_postgres(
-            self.id,
-            creds["host"],
-            creds["port"],
-            creds["username"],
-            creds["password"],
-        ) == 0
+        return (
+            commands.ping_postgres(
+                self.id,
+                creds["host"],
+                creds["port"],
+                creds["username"],
+                creds["password"],
+            )
+            == 0
+        )
 
     def dump_command(self) -> list:
         """list: create a dump command restic and use to send data through stdin"""
