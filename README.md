@@ -133,7 +133,7 @@ Contributions are welcome regardless of experience level.
 
 ## Python environment
 
-Use [`uv`](https://docs.astral.sh/uv/) within the `src/` directory to manage your development environment.
+Use [`uv`](https://docs.astral.sh/uv/) within the repo root directory to manage your development environment.
 
 ```bash
 git clone https://github.com/lawndoc/stack-back.git

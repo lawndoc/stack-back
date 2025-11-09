@@ -82,6 +82,10 @@ def status(config, containers):
         utils.is_true(config.exclude_bind_mounts),
     )
     logger.debug(
+        "Include all compose projects?: %s",
+        utils.is_true(config.include_all_compose_projects),
+    )
+    logger.debug(
         f"Use cache for integrity check?: {utils.is_true(config.check_with_cache)}"
     )
     logger.info("Checking docker availability")
@@ -138,7 +142,7 @@ def status(config, containers):
     logger.info("-" * 67)
 
 
-def backup(config, containers):
+def backup(config, containers: RunningContainers):
     """Request a backup to start"""
     # Make sure we don't spawn multiple backup processes
     if containers.backup_process_running:
@@ -169,7 +173,7 @@ def backup(config, containers):
             command="rcb start-backup-process",
             volumes=volumes,
             environment=containers.this_container.environment,
-            source_container_id=containers.this_container.id,
+            network_names=containers.networks_for_backup(),
             labels={
                 containers.backup_process_label: "True",
                 "com.docker.compose.project": containers.project_name,

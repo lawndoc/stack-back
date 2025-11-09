@@ -1,4 +1,3 @@
-import json
 import os
 import unittest
 from unittest import mock
@@ -16,16 +15,21 @@ list_containers_func = "restic_compose_backup.utils.list_containers"
 class BaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        """Set up basic environment variables"""
-        # os.environ['RESTIC_REPOSITORY'] = "test"
-        # os.environ['RESTIC_PASSWORD'] = "password"
+        cls.backup_hash = fixtures.generate_sha256()
+
+        cls.hostname_patcher = mock.patch(
+            "socket.gethostname", return_value=cls.backup_hash[:8]
+        )
+        cls.hostname_patcher.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.hostname_patcher.stop()
 
     def createContainers(self):
-        backup_hash = fixtures.generate_sha256()
-        os.environ["HOSTNAME"] = backup_hash[:8]
         return [
             {
-                "id": backup_hash,
+                "id": self.backup_hash,
                 "service": "backup",
             }
         ]
@@ -377,10 +381,12 @@ class ResticBackupTests(BaseTestCase):
 class IncludeAllVolumesTests(BaseTestCase):
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
         config.config.auto_backup_all = "true"
 
     @classmethod
     def tearDownClass(cls):
+        super().tearDownClass()
         config.config = config.Config()
 
     def test_all_volumes(self):
