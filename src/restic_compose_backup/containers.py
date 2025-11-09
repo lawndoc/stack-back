@@ -175,7 +175,7 @@ class Container:
         explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MYSQL_ENABLED))
         automatically_enabled = utils.is_true(
             config.auto_backup_all
-        ) and self.image.startswith("mysql:")
+        ) and self.image.startswith("mysql")
         return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
@@ -185,7 +185,7 @@ class Container:
         explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MARIADB_ENABLED))
         automatically_enabled = utils.is_true(
             config.auto_backup_all
-        ) and self.image.startswith("mariadb:")
+        ) and self.image.startswith("mariadb")
         return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
@@ -197,7 +197,7 @@ class Container:
         )
         automatically_enabled = utils.is_true(
             config.auto_backup_all
-        ) and self.image.startswith("postgres:")
+        ) and self.image.startswith("postgres")
         return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
