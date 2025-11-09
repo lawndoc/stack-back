@@ -38,7 +38,7 @@ def backup_files(repository: str, source="/volumes"):
     )
 
 
-def backup_from_stdin(repository: str, filename: str, container_id: str, source_command: List[str], env: Union[dict, list] = None):
+def backup_from_stdin(repository: str, filename: str, container_id: str, source_command: List[str], environment: Union[dict, list] = None):
     """
     Backs up from stdin running the source_command passed in within the given container.
     It will appear in restic with the filename (including path) passed in.
@@ -58,7 +58,7 @@ def backup_from_stdin(repository: str, filename: str, container_id: str, source_
     logger.debug(f"docker exec inside container {container_id} command: {' '.join(source_command)}")
 
     # Create and start  source command inside the given container
-    handle = client.api.exec_create(container_id, source_command, environment=env)
+    handle = client.api.exec_create(container_id, source_command, environment=environment)
     exec_id = handle.get("Id")
     stream = client.api.exec_start(exec_id, stream=True, demux=True)
     source_stderr = ""
