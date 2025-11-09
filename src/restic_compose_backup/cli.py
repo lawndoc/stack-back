@@ -254,10 +254,11 @@ def start_backup_process(config, containers):
         if container.database_backup_enabled:
             try:
                 instance = container.instance
-                logger.info(
-                    "Backing up %s in service %s",
+                logger.debug(
+                    "Backing up %s in service %s from project %s",
                     instance.container_type,
                     instance.service_name,
+                    instance.project_name,
                 )
                 result = instance.backup()
                 logger.debug("Exit code: %s", result)
