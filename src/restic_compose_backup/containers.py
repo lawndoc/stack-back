@@ -449,8 +449,8 @@ class RunningContainers:
             if container.is_oneoff:
                 continue
 
-            # Do not include the backup process container
-            if container == self.backup_process_container:
+            # Do not include the stack-back and backup process containers
+            if "stack-back" in container.image:
                 continue
 
             self.containers.append(container)
@@ -478,9 +478,6 @@ class RunningContainers:
         """Generate mounts for backup for the entire compose setup"""
         mounts = {}
         for container in self.containers_for_backup():
-            # Skip the backup container itself to avoid remapping its mounts (especially docker socket)
-            if container == self.this_container or container == self.backup_process_container:
-                continue
             if container.volume_backup_enabled:
                 mounts.update(
                     container.volumes_for_backup(source_prefix=dest_prefix, mode="ro")
