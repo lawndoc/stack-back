@@ -479,7 +479,7 @@ class RunningContainers:
         mounts = {}
         for container in self.containers_for_backup():
             # Skip the backup container itself to avoid remapping its mounts (especially docker socket)
-            if container == self.this_container:
+            if container == self.this_container or container == self.backup_process_container:
                 continue
             if container.volume_backup_enabled:
                 mounts.update(
