@@ -30,21 +30,20 @@ class MariadbContainer(Container):
     def ping(self) -> bool:
         """Check the availability of the service"""
         creds = self.get_credentials()
-
-        with utils.environment("MYSQL_PWD", creds["password"]):
-            return commands.ping_mariadb(
-                creds["host"],
-                creds["port"],
-                creds["username"],
-            )
+        
+        return commands.ping_mariadb(
+            self.id,
+            creds["host"],
+            creds["port"],
+            creds["username"],
+            creds["password"],
+        ) == 0
 
     def dump_command(self) -> list:
         """list: create a dump command restic and use to send data through stdin"""
         creds = self.get_credentials()
         return [
             "mariadb-dump",
-            f"--host={creds['host']}",
-            f"--port={creds['port']}",
             f"--user={creds['username']}",
             "--all-databases",
             "--no-tablespaces",
@@ -58,12 +57,13 @@ class MariadbContainer(Container):
         config = Config()
         creds = self.get_credentials()
 
-        with utils.environment("MYSQL_PWD", creds["password"]):
-            return restic.backup_from_stdin(
-                config.repository,
-                self.backup_destination_path(),
-                self.dump_command(),
-            )
+        return restic.backup_from_stdin(
+            config.repository,
+            self.backup_destination_path(),
+            self.id,
+            self.dump_command(),
+            environment={"MYSQL_PWD": creds["password"]},
+        )
 
     def backup_destination_path(self) -> str:
         destination = Path("/databases")
@@ -101,20 +101,19 @@ class MysqlContainer(Container):
         """Check the availability of the service"""
         creds = self.get_credentials()
 
-        with utils.environment("MYSQL_PWD", creds["password"]):
-            return commands.ping_mysql(
-                creds["host"],
-                creds["port"],
-                creds["username"],
-            )
+        return commands.ping_mysql(
+            self.id,
+            creds["host"],
+            creds["port"],
+            creds["username"],
+            creds["password"],
+        ) == 0
 
     def dump_command(self) -> list:
         """list: create a dump command restic and use to send data through stdin"""
         creds = self.get_credentials()
         return [
             "mysqldump",
-            f"--host={creds['host']}",
-            f"--port={creds['port']}",
             f"--user={creds['username']}",
             "--all-databases",
             "--no-tablespaces",
@@ -128,12 +127,13 @@ class MysqlContainer(Container):
         config = Config()
         creds = self.get_credentials()
 
-        with utils.environment("MYSQL_PWD", creds["password"]):
-            return restic.backup_from_stdin(
-                config.repository,
-                self.backup_destination_path(),
-                self.dump_command(),
-            )
+        return restic.backup_from_stdin(
+            config.repository,
+            self.backup_destination_path(),
+            self.id,
+            self.dump_command(),
+            environment={"MYSQL_PWD": creds["password"]},
+        )
 
     def backup_destination_path(self) -> str:
         destination = Path("/databases")
@@ -166,11 +166,12 @@ class PostgresContainer(Container):
         """Check the availability of the service"""
         creds = self.get_credentials()
         return commands.ping_postgres(
+            self.id,
             creds["host"],
             creds["port"],
             creds["username"],
             creds["password"],
-        )
+        ) == 0
 
     def dump_command(self) -> list:
         """list: create a dump command restic and use to send data through stdin"""
@@ -178,8 +179,6 @@ class PostgresContainer(Container):
         creds = self.get_credentials()
         return [
             "pg_dump",
-            f"--host={creds['host']}",
-            f"--port={creds['port']}",
             f"--username={creds['username']}",
             creds["database"],
         ]
@@ -188,12 +187,12 @@ class PostgresContainer(Container):
         config = Config()
         creds = self.get_credentials()
 
-        with utils.environment("PGPASSWORD", creds["password"]):
-            return restic.backup_from_stdin(
-                config.repository,
-                self.backup_destination_path(),
-                self.dump_command(),
-            )
+        return restic.backup_from_stdin(
+            config.repository,
+            self.backup_destination_path(),
+            self.id,
+            self.dump_command(),
+        )
 
     def backup_destination_path(self) -> str:
         destination = Path("/databases")

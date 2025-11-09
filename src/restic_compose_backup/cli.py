@@ -126,10 +126,10 @@ def status(config, containers):
             logger.info(
                 " - %s (is_ready=%s) -> %s",
                 instance.container_type,
-                ping == 0,
+                ping,
                 instance.backup_destination_path(),
             )
-            if ping != 0:
+            if not ping:
                 logger.error(
                     "Database '%s' in service %s cannot be reached",
                     instance.container_type,

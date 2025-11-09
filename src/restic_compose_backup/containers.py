@@ -498,7 +498,7 @@ class RunningContainers:
         for container in self.containers_for_backup():
             if container.volume_backup_enabled:
                 mounts.update(
-                    container.volumes_for_backup(source_prefix=dest_prefix, mode="ro")
+                    container.volumes_for_backup(source_prefix=dest_prefix+"/"+container.project_name, mode="ro")
                 )
 
         return mounts
