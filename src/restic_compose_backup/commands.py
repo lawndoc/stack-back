@@ -29,7 +29,7 @@ def ping_mariadb(host, port, username) -> int:
     """Check if the mariadb is up and can be reached"""
     return run(
         [
-            "mysqladmin",
+            "mariadb-admin",
             "ping",
             "--host",
             host,

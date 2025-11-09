@@ -160,11 +160,12 @@ class Container:
     @property
     def volume_backup_enabled(self) -> bool:
         """bool: If the ``stack-back.volumes`` label is set"""
-        label_value = self.get_label(enums.LABEL_VOLUMES_ENABLED)
-
-        return utils.is_true(label_value) or (
-            utils.is_true(config.auto_backup_all) and label_value is None
+        explicitly_enabled = utils.is_true(self.get_label(enums.LABEL_VOLUMES_ENABLED))
+        explicitly_disabled = utils.is_false(
+            self.get_label(enums.LABEL_VOLUMES_ENABLED)
         )
+        automatically_enabled = utils.is_true(config.auto_backup_all)
+        return explicitly_enabled or (automatically_enabled and not explicitly_disabled)
 
     @property
     def database_backup_enabled(self) -> bool:
@@ -184,7 +185,7 @@ class Container:
         explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MYSQL_ENABLED))
         automatically_enabled = utils.is_true(
             config.auto_backup_all
-        ) and self.image.startswith("mysql:")
+        ) and self.image.startswith("mysql")
         return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
@@ -194,7 +195,7 @@ class Container:
         explicity_disabled = utils.is_false(self.get_label(enums.LABEL_MARIADB_ENABLED))
         automatically_enabled = utils.is_true(
             config.auto_backup_all
-        ) and self.image.startswith("mariadb:")
+        ) and self.image.startswith("mariadb")
         return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
@@ -206,7 +207,7 @@ class Container:
         )
         automatically_enabled = utils.is_true(
             config.auto_backup_all
-        ) and self.image.startswith("postgres:")
+        ) and self.image.startswith("postgres")
         return explicity_enabled or (automatically_enabled and not explicity_disabled)
 
     @property
@@ -238,7 +239,11 @@ class Container:
     def filter_mounts(self):
         """Get all mounts for this container matching include/exclude filters"""
         filtered = []
-        database_mounts = ["/var/lib/mysql", "/var/lib/postgresql/data"]
+        database_mounts = [
+            "/var/lib/mysql",
+            "/var/lib/mariadb",
+            "/var/lib/postgresql/data",
+        ]
 
         # If exclude_bind_mounts is true, only volume mounts are kept in the list of mounts
         exclude_bind_mounts = utils.is_true(config.exclude_bind_mounts)

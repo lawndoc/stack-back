@@ -42,7 +42,7 @@ class MariadbContainer(Container):
         """list: create a dump command restic and use to send data through stdin"""
         creds = self.get_credentials()
         return [
-            "mysqldump",
+            "mariadb-dump",
             f"--host={creds['host']}",
             f"--port={creds['port']}",
             f"--user={creds['username']}",
