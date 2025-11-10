@@ -1,15 +1,13 @@
 FROM restic/restic:0.18.1
 
-RUN apk update && apk add \
-    python3 \
-    dcron
+RUN apk update && apk add dcron
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 ADD . /restic-compose-backup
 WORKDIR /restic-compose-backup
 
-# RUN uv python install $(cat .python-version)  # does not build for aarch64 -- see https://github.com/astral-sh/uv/issues/6890
+RUN uv python install $(cat .python-version)
 RUN uv sync --locked
 ENV PATH="/restic-compose-backup/.venv/bin:${PATH}"
 
