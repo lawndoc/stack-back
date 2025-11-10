@@ -147,38 +147,16 @@ Make sure `uv` is already set up as shown above.
 
 ```bash
 # Run only unit tests (fast)
-uv run --directory src/ pytest -m "not integration"
-
-# Run all tests (unit + integration)
-uv run --directory src/ pytest
+uv run --directory src/ pytest -m unit
 
 # Run only integration tests
 uv run --directory src/ pytest -m integration
+
+# Run all tests (unit + integration)
+uv run --directory src/ pytest
 ```
 
-**Note:** Integration tests require Docker and docker-compose to be running, and will spin up real database containers. They take significantly longer than unit tests.
-
-Alternatively, use the integration test runner script:
-
-```bash
-./scripts/run-integration-tests.sh
-```
-
-## Docker Compose testing
-
-The git repository contains a simple local setup for development
-
-```bash
-# Create an overlay network to link the compose project and stack
-docker network create --driver overlay --attachable global
-# Start the compose project
-docker-compose up -d
-# Deploy the stack
-docker stack deploy -c swarm-stack.yml test
-```
-
-Remember to enable swarm mode with `docker swarm init/join` and disable swarm
-mode with `docker swarm leave --force` when needed in development (single node setup).
+**Note:** Integration tests require Docker and docker compose plugin, and will spin up real database containers. They take significantly longer than unit tests.
 
 ## Building Docs
 

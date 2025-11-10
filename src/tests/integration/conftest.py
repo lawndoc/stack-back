@@ -39,75 +39,95 @@ def compose_up(docker_compose_file, compose_project_name, project_root):
     test_restic_data = project_root / "test_restic_data"
     test_restic_cache = project_root / "test_restic_cache"
     
+    def cleanup_directories():
+        """Helper to clean up test directories"""
+        for directory in [test_data_dir, test_restic_data, test_restic_cache]:
+            if directory.exists():
+                # Use docker to remove (files owned by docker user)
+                subprocess.run(
+                        [
+                            "docker", "run", "--rm",
+                            "-v", f"{directory}:/data",
+                            "alpine:latest",
+                            "rm", "-rf", "/data"
+                        ],
+                        check=False,
+                    )
+                # Remove empty directory if still exists
+                subprocess.run(
+                    ["rm", "-rf", str(directory)],
+                    check=False,
+                    cwd=str(project_root),
+                    capture_output=True,
+                )
+                    
+    
+    def cleanup_containers():
+        """Helper to clean up docker containers"""
+        subprocess.run(
+            [
+                "docker", "compose",
+                "-f", str(docker_compose_file),
+                "-p", compose_project_name,
+                "down", "-v"
+            ],
+            check=False,
+            cwd=str(project_root),
+        )
+    
+    # Always clean up before starting (handles previous failed runs)
+    cleanup_containers()
+    cleanup_directories()
+    
+    # Create fresh directories
     for directory in [test_data_dir, test_restic_data, test_restic_cache]:
-        if directory.exists():
-            subprocess.run(
-                ["rm", "-rf", str(directory)],
-                check=False,
-                cwd=str(project_root),
-            )
         directory.mkdir(parents=True, exist_ok=True)
     
     # Create test data directory structure
     web_data_dir = test_data_dir / "web"
     web_data_dir.mkdir(parents=True, exist_ok=True)
     
-    # Start docker compose
-    subprocess.run(
-        [
-            "docker", "compose",
-            "-f", str(docker_compose_file),
-            "-p", compose_project_name,
-            "up", "-d", "--build"
-        ],
-        check=True,
-        cwd=str(project_root),
-    )
-    
-    # Wait for services to be healthy
-    max_wait = 60
-    start_time = time.time()
-    while time.time() - start_time < max_wait:
-        result = subprocess.run(
+    try:
+        # Start docker compose
+        subprocess.run(
             [
                 "docker", "compose",
                 "-f", str(docker_compose_file),
                 "-p", compose_project_name,
-                "ps", "--format", "json"
+                "up", "-d", "--build"
             ],
-            capture_output=True,
-            text=True,
+            check=True,
             cwd=str(project_root),
         )
         
-        if result.returncode == 0:
-            # Check if all services are healthy or running
-            time.sleep(5)
-            break
-        time.sleep(2)
-    
-    yield
-    
-    # Tear down
-    subprocess.run(
-        [
-            "docker", "compose",
-            "-f", str(docker_compose_file),
-            "-p", compose_project_name,
-            "down", "-v"
-        ],
-        check=False,
-        cwd=str(project_root),
-    )
-    
-    # Clean up test data
-    for directory in [test_data_dir, test_restic_data, test_restic_cache]:
-        if directory.exists():
-            subprocess.run(
-                ["rm", "-rf", str(directory)],
-                check=False,
+        # Wait for services to be healthy
+        max_wait = 60
+        start_time = time.time()
+        while time.time() - start_time < max_wait:
+            result = subprocess.run(
+                [
+                    "docker", "compose",
+                    "-f", str(docker_compose_file),
+                    "-p", compose_project_name,
+                    "ps", "--format", "json"
+                ],
+                capture_output=True,
+                text=True,
                 cwd=str(project_root),
             )
+            
+            if result.returncode == 0:
+                # Check if all services are healthy or running
+                time.sleep(5)
+                break
+            time.sleep(2)
+        
+        yield
+        
+    finally:
+        # Always tear down, even if tests fail or are interrupted
+        cleanup_containers()
+        cleanup_directories()
 
 
 @pytest.fixture
