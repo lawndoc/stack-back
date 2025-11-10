@@ -1,8 +1,10 @@
+FROM ghcr.io/astral-sh/uv:0.9.8 AS uv-builder
+
 FROM restic/restic:0.18.1
 
 RUN apk update && apk add dcron
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=uv-builder /uv /uvx /bin/
 
 ADD . /restic-compose-backup
 WORKDIR /restic-compose-backup
