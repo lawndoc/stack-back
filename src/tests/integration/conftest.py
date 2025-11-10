@@ -52,10 +52,10 @@ def compose_up(docker_compose_file, compose_project_name, project_root):
     web_data_dir = test_data_dir / "web"
     web_data_dir.mkdir(parents=True, exist_ok=True)
     
-    # Start docker-compose
+    # Start docker compose
     subprocess.run(
         [
-            "docker-compose",
+            "docker", "compose",
             "-f", str(docker_compose_file),
             "-p", compose_project_name,
             "up", "-d", "--build"
@@ -70,7 +70,7 @@ def compose_up(docker_compose_file, compose_project_name, project_root):
     while time.time() - start_time < max_wait:
         result = subprocess.run(
             [
-                "docker-compose",
+                "docker", "compose",
                 "-f", str(docker_compose_file),
                 "-p", compose_project_name,
                 "ps", "--format", "json"
@@ -91,7 +91,7 @@ def compose_up(docker_compose_file, compose_project_name, project_root):
     # Tear down
     subprocess.run(
         [
-            "docker-compose",
+            "docker", "compose",
             "-f", str(docker_compose_file),
             "-p", compose_project_name,
             "down", "-v"
