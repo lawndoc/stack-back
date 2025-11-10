@@ -2,11 +2,7 @@ FROM restic/restic:0.17.3
 
 RUN apk update && apk add \
     python3 \
-    dcron \
-    mariadb-client \
-    mariadb-connector-c-dev
-
-RUN apk add postgresql-client --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
+    dcron
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
