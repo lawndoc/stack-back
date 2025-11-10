@@ -20,7 +20,7 @@ services:
     env_file:
       - stack-back.env
     environment:
-      - AUTO_DETECT_ALL: True
+      - AUTO_BACKUP_ALL: True
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - cache:/cache # Persistent restic cache (greatly speeds up all restic operations)
