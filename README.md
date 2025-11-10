@@ -146,7 +146,22 @@ uv sync --directory src/
 Make sure `uv` is already set up as shown above.
 
 ```bash
+# Run only unit tests (fast)
+uv run --directory src/ pytest -m "not integration"
+
+# Run all tests (unit + integration)
 uv run --directory src/ pytest
+
+# Run only integration tests
+uv run --directory src/ pytest -m integration
+```
+
+**Note:** Integration tests require Docker and docker-compose to be running, and will spin up real database containers. They take significantly longer than unit tests.
+
+Alternatively, use the integration test runner script:
+
+```bash
+./scripts/run-integration-tests.sh
 ```
 
 ## Docker Compose testing

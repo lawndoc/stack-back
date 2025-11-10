@@ -18,9 +18,13 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-python_files = ["tests.py"]
+python_files = ["tests.py", "test_*.py"]
 python_classes = ["*Tests"]
 python_functions = ["test_*"]
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+    "unit: marks tests as unit tests",
+]
 
 [project.scripts]
 restic-compose-backup = "restic_compose_backup.cli:main"

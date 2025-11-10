@@ -1,0 +1,117 @@
+services:
+  backup:
+    build: ./src
+    environment:
+      - RESTIC_REPOSITORY=/restic_data
+      - RESTIC_PASSWORD=test_password_for_integration_tests
+      - AUTO_BACKUP_ALL=false
+      - LOG_LEVEL=debug
+      - INCLUDE_PROJECT_NAME=false
+      - EXCLUDE_BIND_MOUNTS=false
+      - RESTIC_KEEP_DAILY=7
+      - RESTIC_KEEP_WEEKLY=4
+      - RESTIC_KEEP_MONTHLY=12
+      - RESTIC_KEEP_YEARLY=3
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./test_restic_data:/restic_data
+      - ./test_restic_cache:/cache
+      - ./src:/stack-back
+    networks:
+      - test-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mariadb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  web:
+    image: nginx:alpine
+    labels:
+      stack-back.volumes: true
+      stack-back.volumes.include: "data"
+    volumes:
+      - web_data:/usr/share/nginx/html
+      - ./test_data/web:/srv/data
+    networks:
+      - test-network
+
+  mysql:
+    image: mysql:8
+    labels:
+      stack-back.mysql: true
+    environment:
+      - MYSQL_ROOT_PASSWORD=test_root_password
+      - MYSQL_DATABASE=testdb
+      - MYSQL_USER=testuser
+      - MYSQL_PASSWORD=testpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ptest_root_password"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mariadb:
+    image: mariadb:11
+    labels:
+      stack-back.mariadb: true
+    environment:
+      - MARIADB_ROOT_PASSWORD=test_root_password
+      - MARIADB_DATABASE=testdb
+      - MARIADB_USER=testuser
+      - MARIADB_PASSWORD=testpassword
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  postgres:
+    image: postgres:17
+    labels:
+      stack-back.postgres: true
+    environment:
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpassword
+      - POSTGRES_DB=testdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Service to test exclude patterns
+  excluded_service:
+    image: alpine:latest
+    command: tail -f /dev/null
+    labels:
+      stack-back.volumes: false
+    volumes:
+      - excluded_data:/data
+    networks:
+      - test-network
+
+volumes:
+  web_data:
+  mysql_data:
+  mariadb_data:
+  postgres_data:
+  excluded_data:
+
+networks:
+  test-network:
+    driver: bridge
