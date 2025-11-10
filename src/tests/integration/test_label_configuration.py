@@ -38,10 +38,6 @@ def test_database_labels_detection(run_rcb_command):
     assert "postgres" in output.lower()
 
 
-@pytest.mark.parametrize("compose_file_content,expected_in_output,not_expected", [
-    # This test would require dynamic compose file generation
-    # For now, we'll test the static configuration
-])
 def test_auto_backup_all_flag():
     """Test AUTO_BACKUP_ALL environment variable behavior
     
