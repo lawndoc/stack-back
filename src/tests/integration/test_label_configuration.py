@@ -38,18 +38,6 @@ def test_database_labels_detection(run_rcb_command):
     assert "postgres" in output.lower()
 
 
-def test_auto_backup_all_flag():
-    """Test AUTO_BACKUP_ALL environment variable behavior
-    
-    Note: This test is informational - the actual AUTO_BACKUP_ALL
-    behavior is tested in the unit tests. Integration tests use
-    AUTO_BACKUP_ALL=false to have explicit control.
-    """
-    # In the current test setup, AUTO_BACKUP_ALL=false
-    # so only explicitly labeled services are backed up
-    pass
-
-
 def test_backup_respects_labels(run_rcb_command, create_test_data, project_root, compose_project_name):
     """Test that backup only processes labeled services"""
     # Create data in both included and excluded services
