@@ -11,6 +11,7 @@ backup.log
 # python
 __pycache__
 *.egg-info/
+.ruff_cache/
 
 # Virtualenvs
 env
