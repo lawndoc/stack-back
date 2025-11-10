@@ -1,4 +1,5 @@
 """Shared fixtures and test base classes for unit tests"""
+
 import os
 import unittest
 from unittest import mock
@@ -11,7 +12,7 @@ from . import fixtures
 
 class BaseTestCase(unittest.TestCase):
     """Base test case for unit tests with common setup"""
-    
+
     @classmethod
     def setUpClass(cls):
         cls.backup_hash = fixtures.generate_sha256()

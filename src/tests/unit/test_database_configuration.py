@@ -1,4 +1,5 @@
 """Unit tests for database backup configuration"""
+
 import unittest
 from unittest import mock
 import pytest

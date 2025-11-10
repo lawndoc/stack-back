@@ -1,4 +1,5 @@
 """Unit tests for AUTO_BACKUP_ALL configuration"""
+
 import unittest
 from unittest import mock
 import pytest
