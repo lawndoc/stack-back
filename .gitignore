@@ -30,6 +30,7 @@ docs/_build
 dist
 
 # tests
+/test_*/
 
 # Python bytecode
 *.py[cod]
