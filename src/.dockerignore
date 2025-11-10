@@ -1,3 +1,8 @@
-tests/
-__pycache__
+__pycache__/
 .DS_Store
+.pytest_cache/
+.ruff_cache/
+.tox/
+.venv/
+*.egg-info/
+tests/
