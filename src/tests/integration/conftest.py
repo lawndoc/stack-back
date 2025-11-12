@@ -279,7 +279,7 @@ def secondary_compose_project_name():
 @pytest.fixture(scope="session")
 def secondary_docker_compose_file(project_root):
     """Return the path to the secondary test docker-compose file"""
-    return project_root / "docker-compose.secondary.yaml"
+    return project_root / "docker-compose.test2.yaml"
 
 
 @pytest.fixture(scope="session")
