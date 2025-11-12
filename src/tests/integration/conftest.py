@@ -192,16 +192,16 @@ def cleanup_restic_snapshots(backup_container):
     exit_code, output = backup_container.exec_run(
         "sh -c 'restic snapshots --json 2>/dev/null || true'"
     )
-    
+
     # If there are any snapshots, remove them all
     if exit_code == 0 and output.decode().strip():
         # Use restic forget with --prune to remove all snapshots
         backup_container.exec_run(
             "sh -c 'restic snapshots --quiet | tail -n +2 | head -n -2 | awk \"{print \\$1}\" | xargs -r -I {} restic forget {} --prune 2>/dev/null || true'"
         )
-    
+
     yield
-    
+
     # Comment out if you want to inspect snapshots after failed tests
 
 
@@ -283,7 +283,9 @@ def secondary_docker_compose_file(project_root):
 
 
 @pytest.fixture(scope="session")
-def secondary_compose_up(secondary_docker_compose_file, secondary_compose_project_name, project_root):
+def secondary_compose_up(
+    secondary_docker_compose_file, secondary_compose_project_name, project_root
+):
     """Start secondary docker-compose services before tests and tear down after"""
     # Clean up any existing test data
     test_data_dir = project_root / "test_data" / "secondary_web"
@@ -392,10 +394,14 @@ def secondary_compose_up(secondary_docker_compose_file, secondary_compose_projec
 
 
 @pytest.fixture
-def secondary_web_container(docker_client, secondary_compose_project_name, secondary_compose_up):
+def secondary_web_container(
+    docker_client, secondary_compose_project_name, secondary_compose_up
+):
     """Return the secondary web container"""
     containers = docker_client.containers.list(
-        filters={"label": f"com.docker.compose.project={secondary_compose_project_name}"}
+        filters={
+            "label": f"com.docker.compose.project={secondary_compose_project_name}"
+        }
     )
     for container in containers:
         service_name = container.labels.get("com.docker.compose.service")
@@ -405,10 +411,14 @@ def secondary_web_container(docker_client, secondary_compose_project_name, secon
 
 
 @pytest.fixture
-def secondary_mysql_container(docker_client, secondary_compose_project_name, secondary_compose_up):
+def secondary_mysql_container(
+    docker_client, secondary_compose_project_name, secondary_compose_up
+):
     """Return the secondary MySQL container"""
     containers = docker_client.containers.list(
-        filters={"label": f"com.docker.compose.project={secondary_compose_project_name}"}
+        filters={
+            "label": f"com.docker.compose.project={secondary_compose_project_name}"
+        }
     )
     for container in containers:
         service_name = container.labels.get("com.docker.compose.service")
@@ -418,10 +428,14 @@ def secondary_mysql_container(docker_client, secondary_compose_project_name, sec
 
 
 @pytest.fixture
-def secondary_postgres_container(docker_client, secondary_compose_project_name, secondary_compose_up):
+def secondary_postgres_container(
+    docker_client, secondary_compose_project_name, secondary_compose_up
+):
     """Return the secondary PostgreSQL container"""
     containers = docker_client.containers.list(
-        filters={"label": f"com.docker.compose.project={secondary_compose_project_name}"}
+        filters={
+            "label": f"com.docker.compose.project={secondary_compose_project_name}"
+        }
     )
     for container in containers:
         service_name = container.labels.get("com.docker.compose.service")
@@ -431,7 +445,9 @@ def secondary_postgres_container(docker_client, secondary_compose_project_name, 
 
 
 @pytest.fixture
-def backup_container_with_multi_project(docker_client, compose_project_name, compose_up, secondary_compose_up, project_root):
+def backup_container_with_multi_project(
+    docker_client, compose_project_name, compose_up, secondary_compose_up, project_root
+):
     """Return the backup container with INCLUDE_ALL_COMPOSE_PROJECTS enabled"""
     # Get the backup container
     containers = docker_client.containers.list(
@@ -443,54 +459,58 @@ def backup_container_with_multi_project(docker_client, compose_project_name, com
         if service_name == "backup":
             backup_cont = container
             break
-    
+
     if backup_cont is None:
         raise RuntimeError("Backup container not found")
-    
+
     # Set the environment variable for this test
     # We need to restart the container with the new environment variable
     # Since we can't easily modify a running container, we'll use exec to set it
     # and restart the backup process
-    
+
     # Stop the container
     backup_cont.stop()
-    
+
     # Get the container config
     container_info = docker_client.api.inspect_container(backup_cont.id)
-    config = container_info['Config']
-    host_config = container_info['HostConfig']
-    
+    config = container_info["Config"]
+    host_config = container_info["HostConfig"]
+
     # Add the environment variable
-    env_list = config.get('Env', [])
+    env_list = config.get("Env", [])
     # Remove any existing INCLUDE_ALL_COMPOSE_PROJECTS
-    env_list = [e for e in env_list if not e.startswith('INCLUDE_ALL_COMPOSE_PROJECTS=')]
-    env_list.append('INCLUDE_ALL_COMPOSE_PROJECTS=true')
-    
+    env_list = [
+        e for e in env_list if not e.startswith("INCLUDE_ALL_COMPOSE_PROJECTS=")
+    ]
+    env_list.append("INCLUDE_ALL_COMPOSE_PROJECTS=true")
+
     # Remove the old container
     backup_cont.remove()
-    
+
     # Create a new container with the updated environment
     new_container = docker_client.containers.create(
-        config['Image'],
+        config["Image"],
         environment=env_list,
-        volumes=host_config.get('Binds', []),
-        network=list(container_info['NetworkSettings']['Networks'].keys())[0] if container_info['NetworkSettings']['Networks'] else None,
-        name=container_info['Name'].strip('/'),
-        labels=config.get('Labels', {}),
+        volumes=host_config.get("Binds", []),
+        network=list(container_info["NetworkSettings"]["Networks"].keys())[0]
+        if container_info["NetworkSettings"]["Networks"]
+        else None,
+        name=container_info["Name"].strip("/"),
+        labels=config.get("Labels", {}),
     )
-    
+
     # Start the new container
     new_container.start()
-    
+
     # Wait a bit for it to initialize
     time.sleep(5)
-    
+
     yield new_container
-    
+
     # Clean up - stop AND remove the container so compose creates a fresh one
     new_container.stop()
     new_container.remove()
-    
+
     # Restart the original backup container setup
     # This will now create a fresh container without INCLUDE_ALL_COMPOSE_PROJECTS
     subprocess.run(
