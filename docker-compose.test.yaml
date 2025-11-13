@@ -1,7 +1,25 @@
 services:
+  socket-proxy:
+      image: linuxserver/socket-proxy:3.2.7
+      environment:
+        ALLOW_START: 1
+        ALLOW_STOP: 1
+        CONTAINERS: 1
+        EXEC: 1
+        POST: 1
+        VERSION: 1
+      read_only: true
+      tmpfs:
+        - /run
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+      restart: unless-stopped
+      networks:
+        - backup
   backup:
     build: ./src
     environment:
+      - DOCKER_HOST=tcp://socket-proxy:2375
       - RESTIC_REPOSITORY=/restic_data
       - RESTIC_PASSWORD=test_password_for_integration_tests
       - AUTO_BACKUP_ALL=false
@@ -13,13 +31,14 @@ services:
       - RESTIC_KEEP_MONTHLY=12
       - RESTIC_KEEP_YEARLY=3
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./test_restic_data:/restic_data
       - ./test_restic_cache:/cache
       - ./src:/stack-back
     networks:
-      - test-network
+      - backup
     depends_on:
+      socket-proxy:
+        condition: service_started
       mysql:
         condition: service_healthy
       mariadb:
@@ -113,5 +132,7 @@ volumes:
   excluded_data:
 
 networks:
+  backup:
+    driver: bridge
   test-network:
     driver: bridge
