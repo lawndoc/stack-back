@@ -118,11 +118,18 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
-      - name: Generate SBOM
+      - name: Generate SPDX SBOM
         uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # v0.20.9
         with:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.changed.outcome == 'success' && steps.version.outputs.new_tag || github.ref_name }}
-          format: cyclonedx
+          format: spdx-json
+          output-file: ./sbom.spdx.json
+
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # v0.20.9
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.changed.outcome == 'success' && steps.version.outputs.new_tag || github.ref_name }}
+          format: cyclonedx-json
           output-file: ./sbom.cyclonedx.json
 
       - name: Attest SBOM
@@ -138,6 +145,7 @@ jobs:
         uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
         with:
           allowUpdates: true
+          artifacts: "sbom.spdx.json,sbom.cyclonedx.json"
           updateOnlyUnreleased: true
           generateReleaseNotes: true
           tag: ${{ steps.version.outputs.new_tag }}
