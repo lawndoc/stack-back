@@ -1,0 +1,60 @@
+services:
+  # Secondary project web service with volumes
+  secondary_web:
+    image: nginx:alpine
+    labels:
+      stack-back.volumes: true
+      stack-back.volumes.include: "secondary_web"
+    volumes:
+      - secondary_web_data:/usr/share/nginx/html
+      - ./test_data/secondary_web:/srv/content
+    networks:
+      - secondary-network
+
+  # Secondary project MySQL database
+  secondary_mysql:
+    image: mysql:8
+    labels:
+      stack-back.mysql: true
+    environment:
+      - MYSQL_ROOT_PASSWORD=secondary_root_password
+      - MYSQL_DATABASE=secondary_db
+      - MYSQL_USER=secondary_user
+      - MYSQL_PASSWORD=secondary_password
+    volumes:
+      - secondary_mysql_data:/var/lib/mysql
+    networks:
+      - secondary-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecondary_root_password"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Secondary project PostgreSQL database
+  secondary_postgres:
+    image: postgres:17
+    labels:
+      stack-back.postgres: true
+    environment:
+      - POSTGRES_USER=secondary_user
+      - POSTGRES_PASSWORD=secondary_password
+      - POSTGRES_DB=secondary_db
+    volumes:
+      - secondary_postgres_data:/var/lib/postgresql/data
+    networks:
+      - secondary-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U secondary_user -d secondary_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  secondary_web_data:
+  secondary_mysql_data:
+  secondary_postgres_data:
+
+networks:
+  secondary-network:
+    driver: bridge
