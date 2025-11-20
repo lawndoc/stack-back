@@ -43,6 +43,31 @@ jobs:
           uv sync --locked --directory src/
           uv run --directory src/ pytest -m "integration" -v
 
+  integration-tests-podman:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+          
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install podman podman-compose
+          
+      - name: Configure Podman socket
+        run: |
+          systemctl --user enable --now podman.socket
+          export DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock
+          
+      - name: Install uv
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+    
+      - name: Run integration tests with Podman
+        run: |
+          uv sync --locked --directory src/
+          export DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock
+          uv run --directory src/ pytest -m "integration" -v
+
   code-quality:
     runs-on: ubuntu-latest
     steps:
