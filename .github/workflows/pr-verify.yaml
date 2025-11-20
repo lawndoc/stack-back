@@ -42,8 +42,6 @@ jobs:
         run: |
           uv sync --locked --directory src/
           uv run --directory src/ pytest -m "integration" -v
-        env:
-          DOCKER_SOCKET: /var/run/docker.sock
 
   integration-tests-podman:
     runs-on: ubuntu-latest
@@ -67,8 +65,6 @@ jobs:
         run: |
           uv sync --locked --directory src/
           uv run --directory src/ pytest -m "integration" -v
-        env:
-          DOCKER_SOCKET: /run/podman/podman.sock
 
   code-quality:
     runs-on: ubuntu-latest
