@@ -42,6 +42,8 @@ jobs:
         run: |
           uv sync --locked --directory src/
           uv run --directory src/ pytest -m "integration" -v
+        env:
+          DOCKER_SOCKET: /var/run/docker.sock
 
   integration-tests-podman:
     runs-on: ubuntu-latest
@@ -57,7 +59,6 @@ jobs:
       - name: Configure Podman socket
         run: |
           systemctl --user enable --now podman.socket
-          ln -s /usr/lib/systemd/user/podman.socket /var/run/docker.sock
           
       - name: Install uv
         uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
@@ -65,8 +66,9 @@ jobs:
       - name: Run integration tests with Podman
         run: |
           uv sync --locked --directory src/
-          export DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock
           uv run --directory src/ pytest -m "integration" -v
+        env:
+          DOCKER_SOCKET: /usr/lib/systemd/user/podman.socket
 
   code-quality:
     runs-on: ubuntu-latest
