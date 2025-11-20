@@ -53,6 +53,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install podman podman-compose podman-docker
+          ln -s /var/run/user/$(id -u)/podman/podman.sock /usr/share/docker.sock
           
       - name: Configure Podman socket
         run: |
