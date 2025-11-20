@@ -52,7 +52,7 @@ jobs:
       - name: Install Podman
         run: |
           sudo apt-get update
-          sudo apt-get -y install podman podman-compose
+          sudo apt-get -y install podman podman-compose podman-docker
           
       - name: Configure Podman socket
         run: |
