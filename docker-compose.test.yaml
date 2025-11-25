@@ -1,6 +1,6 @@
 services:
   socket-proxy:
-      image: linuxserver/socket-proxy:3.2.8
+      image: linuxserver/socket-proxy:3.2.9
       environment:
         ALLOW_START: 1
         ALLOW_STOP: 1
