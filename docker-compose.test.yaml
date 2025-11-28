@@ -6,6 +6,7 @@ services:
         ALLOW_STOP: 1
         CONTAINERS: 1
         EXEC: 1
+        NETWORKS: 1
         POST: 1
         VERSION: 1
       read_only: true
