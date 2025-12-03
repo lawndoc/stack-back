@@ -17,6 +17,7 @@ def run(
     logger.info("Starting backup container")
     client = utils.docker_client()
 
+    volumes["/var/run/docker.sock"] = {"bind": "/tmp/docker.sock", "mode": "ro"};
     container = client.containers.run(
         image,
         command,
