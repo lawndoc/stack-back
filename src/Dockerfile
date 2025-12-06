@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:0.9.13 AS uv-builder
+FROM ghcr.io/astral-sh/uv:0.9.16 AS uv-builder
 
 FROM restic/restic:0.18.1
 
