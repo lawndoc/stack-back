@@ -504,22 +504,23 @@ def backup_container_with_multi_project(
 
     # Create a new container with the updated environment
     # which is needed for the backup container to identify itself
+    # Note: We don't set hostname - Docker/Podman will set it to the container ID
     new_container = docker_client.containers.create(
         config["Image"],
+        command=config.get("Cmd"),
         environment=env_list,
         volumes=volumes_dict,
         name=container_info["Name"].strip("/"),
         labels=config.get("Labels", {}),
+        detach=True,
+        working_dir=config.get("WorkingDir"),
+        entrypoint=config.get("Entrypoint"),
     )
 
     # Connect to networks after creation (more compatible with Podman)
     for network_name in networks:
-        try:
-            network = docker_client.networks.get(network_name)
-            network.connect(new_container)
-        except Exception:
-            # If network connection fails, continue (may already be connected)
-            pass
+        network = docker_client.networks.get(network_name)
+        network.connect(new_container)
 
     # Start the new container
     new_container.start()
