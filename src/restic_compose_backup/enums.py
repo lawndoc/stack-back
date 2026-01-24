@@ -9,3 +9,4 @@ LABEL_POSTGRES_ENABLED = "stack-back.postgres"
 LABEL_MARIADB_ENABLED = "stack-back.mariadb"
 
 LABEL_BACKUP_PROCESS = "stack-back.process"
+LABEL_RESTIC_BACKUP_OPTIONS = "stack-back.restic.backup.options"

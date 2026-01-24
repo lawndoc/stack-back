@@ -156,6 +156,8 @@ uv run --directory src/ pytest -m integration
 uv run --directory src/ pytest
 ```
 
+**Note:** Use `-vs --log-cli-level=DEBUG` pytest options to get detailed progress when running the tests.
+
 **Note:** Integration tests require Docker and docker compose plugin, and will spin up real database containers. They take significantly longer than unit tests.
 
 ## Building Docs
