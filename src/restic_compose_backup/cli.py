@@ -235,10 +235,8 @@ def start_backup_process(config, containers):
     if len(containers.stop_during_backup_containers) > 0:
         utils.stop_containers(containers.stop_during_backup_containers)
 
-    restic_backup_options = ["--verbose"]
     backup_args_label = containers.this_container.get_label(enums.LABEL_RESTIC_BACKUP_OPTIONS)
-    if backup_args_label:
-        restic_backup_options.extend(backup_args_label.split())
+    restic_backup_options = backup_args_label.split() if backup_args_label else ["--verbose"]
 
     # back up volumes
     if has_volumes:
