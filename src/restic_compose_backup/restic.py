@@ -32,7 +32,8 @@ def backup_files(repository: str, restic_backup_options: List[str], source="/vol
             [
                 "backup",
                 source,
-            ] + restic_backup_options,
+            ]
+            + restic_backup_options,
         )
     )
 
@@ -56,7 +57,8 @@ def backup_from_stdin(
             "--stdin",
             "--stdin-filename",
             filename,
-        ] + restic_backup_options,
+        ]
+        + restic_backup_options,
     )
 
     client = utils.docker_client()

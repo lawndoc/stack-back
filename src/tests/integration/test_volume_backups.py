@@ -11,6 +11,7 @@ pytestmark = pytest.mark.integration
 @dataclasses.dataclass
 class Snapshot:
     """Represents a restic snapshot"""
+
     id: str
     time: str
     host: str
@@ -21,17 +22,17 @@ class Snapshot:
 def parse_snapshots(output: str) -> list[Snapshot]:
     """Parse restic snapshots output into Snapshot objects"""
     lines = output.split("\n")
-    
+
     # Find the header line to determine column positions
     header_idx = -1
     for i, line in enumerate(lines):
         if line.startswith("ID"):
             header_idx = i
             break
-    
+
     if header_idx == -1:
         return []
-    
+
     header = lines[header_idx]
     # Find column positions based on header
     id_pos = header.index("ID")
@@ -39,31 +40,41 @@ def parse_snapshots(output: str) -> list[Snapshot]:
     host_pos = header.index("Host") if "Host" in header else -1
     tags_pos = header.index("Tags") if "Tags" in header else -1
     paths_pos = header.index("Paths") if "Paths" in header else -1
-    
+
     snapshots = []
     # Process lines after the separator line
-    for line in lines[header_idx + 2:]:
+    for line in lines[header_idx + 2 :]:
         if not line.strip() or line.startswith("-"):
             continue
         if re.match(r"^\d+ snapshots", line):
             break
-            
+
         # Extract values based on column positions
-        id_val = line[id_pos:time_pos].strip() if time_pos > 0 else line[id_pos:].strip()
-        time_val = line[time_pos:host_pos].strip() if time_pos > 0 and host_pos > 0 else ""
-        host_val = line[host_pos:tags_pos].strip() if host_pos > 0 and tags_pos > 0 else ""
-        tags_val = line[tags_pos:paths_pos].strip() if tags_pos > 0 and paths_pos > 0 else ""
+        id_val = (
+            line[id_pos:time_pos].strip() if time_pos > 0 else line[id_pos:].strip()
+        )
+        time_val = (
+            line[time_pos:host_pos].strip() if time_pos > 0 and host_pos > 0 else ""
+        )
+        host_val = (
+            line[host_pos:tags_pos].strip() if host_pos > 0 and tags_pos > 0 else ""
+        )
+        tags_val = (
+            line[tags_pos:paths_pos].strip() if tags_pos > 0 and paths_pos > 0 else ""
+        )
         paths_val = line[paths_pos:].strip() if paths_pos > 0 else ""
-        
+
         if id_val:
-            snapshots.append(Snapshot(
-                id=id_val,
-                time=time_val,
-                host=host_val,
-                tags=tags_val,
-                paths=paths_val,
-            ))
-    
+            snapshots.append(
+                Snapshot(
+                    id=id_val,
+                    time=time_val,
+                    host=host_val,
+                    tags=tags_val,
+                    paths=paths_val,
+                )
+            )
+
     return snapshots
 
 
@@ -91,10 +102,12 @@ def test_backup_bind_mount(run_rcb_command, create_test_data, backup_container):
     # Check that snapshots were created
     exit_code, output = run_rcb_command("snapshots")
     assert exit_code == 0, f"Snapshots command failed: {output}"
-    
+
     snapshots = parse_snapshots(output)
     assert len(snapshots) == 4, f"Expected 4 snapshots, found\n{output}"
-    assert all("test-tag" in s.tags for s in snapshots), f"Not all snapshots have 'test-tag':\n{output}"
+    assert all("test-tag" in s.tags for s in snapshots), (
+        f"Not all snapshots have 'test-tag':\n{output}"
+    )
 
 
 def test_restore_bind_mount(
