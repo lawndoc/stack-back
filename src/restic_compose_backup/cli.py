@@ -5,6 +5,7 @@ import logging
 from restic_compose_backup import (
     alerts,
     backup_runner,
+    enums,
     log,
     restic,
 )
@@ -234,11 +235,22 @@ def start_backup_process(config, containers):
     if len(containers.stop_during_backup_containers) > 0:
         utils.stop_containers(containers.stop_during_backup_containers)
 
+    backup_args_label = containers.this_container.get_label(
+        enums.LABEL_RESTIC_BACKUP_OPTIONS
+    )
+    restic_backup_options = (
+        backup_args_label.split() if backup_args_label else ["--verbose"]
+    )
+
     # back up volumes
     if has_volumes:
         try:
-            logger.info("Backing up volumes")
-            vol_result = restic.backup_files(config.repository, source="/volumes")
+            logger.info("Backing up volumes with arguments: %s", restic_backup_options)
+            vol_result = restic.backup_files(
+                config.repository,
+                restic_backup_options=restic_backup_options,
+                source="/volumes",
+            )
             logger.debug("Volume backup exit code: %s", vol_result)
             if vol_result != 0:
                 logger.error("Volume backup exited with non-zero code: %s", vol_result)
@@ -260,7 +272,7 @@ def start_backup_process(config, containers):
                     instance.service_name,
                     instance.project_name,
                 )
-                result = instance.backup()
+                result = instance.backup(restic_backup_options=restic_backup_options)
                 logger.debug("Exit code: %s", result)
                 if result != 0:
                     logger.error("Backup command exited with non-zero code: %s", result)

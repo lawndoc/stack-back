@@ -25,15 +25,15 @@ def init_repo(repository: str):
     )
 
 
-def backup_files(repository: str, source="/volumes"):
+def backup_files(repository: str, restic_backup_options: List[str], source="/volumes"):
     return commands.run(
         restic(
             repository,
             [
-                "--verbose",
                 "backup",
                 source,
-            ],
+            ]
+            + restic_backup_options,
         )
     )
 
@@ -43,6 +43,7 @@ def backup_from_stdin(
     filename: str,
     container_id: str,
     source_command: List[str],
+    restic_backup_options: List[str],
     environment: Union[dict, list] = None,
 ):
     """
@@ -56,7 +57,8 @@ def backup_from_stdin(
             "--stdin",
             "--stdin-filename",
             filename,
-        ],
+        ]
+        + restic_backup_options,
     )
 
     client = utils.docker_client()

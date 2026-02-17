@@ -1,10 +1,13 @@
 """Pytest fixtures for integration tests"""
 
+import logging
 import subprocess
 import time
 import pytest
 import docker
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
@@ -179,7 +182,9 @@ def run_rcb_command(backup_container):
     def _run_command(command: str):
         full_command = f"rcb {command}"
         exit_code, output = backup_container.exec_run(full_command)
-        return exit_code, output.decode()
+        decoded_output = output.decode()
+        logger.debug("Command '%s' output:\n%s", full_command, decoded_output)
+        return exit_code, decoded_output
 
     return _run_command
 

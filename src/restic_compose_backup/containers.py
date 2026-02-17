@@ -1,7 +1,6 @@
 import logging
 from pathlib import Path
 import socket
-from typing import List
 
 from restic_compose_backup import enums, utils
 from restic_compose_backup.config import config
@@ -304,7 +303,7 @@ class Container:
         """Check the availability of the service"""
         raise NotImplementedError("Base container class don't implement this")
 
-    def backup(self):
+    def backup(self, restic_backup_options: list[str]) -> int:
         """Back up this service"""
         raise NotImplementedError("Base container class don't implement this")
 

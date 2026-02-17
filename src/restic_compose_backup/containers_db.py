@@ -56,7 +56,7 @@ class MariadbContainer(Container):
             "--force",
         ]
 
-    def backup(self):
+    def backup(self, restic_backup_options: list[str]) -> int:
         config = Config()
         creds = self.get_credentials()
 
@@ -65,6 +65,7 @@ class MariadbContainer(Container):
             self.backup_destination_path(),
             self.id,
             self.dump_command(),
+            restic_backup_options=restic_backup_options,
             environment={"MYSQL_PWD": creds["password"]},
         )
 
@@ -129,7 +130,7 @@ class MysqlContainer(Container):
             "--force",
         ]
 
-    def backup(self):
+    def backup(self, restic_backup_options: list[str]) -> int:
         config = Config()
         creds = self.get_credentials()
 
@@ -138,6 +139,7 @@ class MysqlContainer(Container):
             self.backup_destination_path(),
             self.id,
             self.dump_command(),
+            restic_backup_options=restic_backup_options,
             environment={"MYSQL_PWD": creds["password"]},
         )
 
@@ -192,7 +194,7 @@ class PostgresContainer(Container):
             creds["database"],
         ]
 
-    def backup(self):
+    def backup(self, restic_backup_options: list[str]) -> int:
         config = Config()
         creds = self.get_credentials()
 
@@ -201,6 +203,7 @@ class PostgresContainer(Container):
             self.backup_destination_path(),
             self.id,
             self.dump_command(),
+            restic_backup_options=restic_backup_options,
         )
 
     def backup_destination_path(self) -> str:

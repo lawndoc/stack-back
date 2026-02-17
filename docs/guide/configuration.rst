@@ -402,6 +402,37 @@ Exclude example achieving the same result as the example above.
 The ``exclude`` and ``include`` tag can be used together
 in more complex situations.
 
+Restic Backup Options
+~~~~~~~~~~~~~~~~~~~~~
+
+Additional restic options can be passed to the ``rcb backup`` sub-command
+by adding the ``stack-back.restic.backup.options``
+label to the backup service. The value of this label is appended as-is at
+the end of the underlying ``restic backup`` command.
+
+The option defaults to ``--verbose``.
+
+Example:
+
+.. code:: yaml
+
+    backup:
+      image: ghcr.io/lawndoc/stack-back:latest
+      labels:
+        stack-back.restic.backup.options: "--tag production --verbose"
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+
+
+With the above example configuration, the backup will be executed as:
+
+.. code:: bash
+
+    restic backup <source> --tag production --verbose
+
+
+It applies to both volume and database backups.
+
 mariadb
 ~~~~~~~
 

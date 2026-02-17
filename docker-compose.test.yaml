@@ -18,6 +18,8 @@ services:
         - backup
   backup:
     build: ./src
+    labels:
+      stack-back.restic.backup.options: --verbose --tag test-tag
     environment:
       - DOCKER_HOST=tcp://socket-proxy:2375
       - RESTIC_REPOSITORY=/restic_data
