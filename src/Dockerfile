@@ -1,6 +1,6 @@
 FROM ghcr.io/astral-sh/uv:0.9.13 AS uv-builder
 
-FROM restic/restic:0.18.1
+FROM docker.io/restic/restic:0.18.1
 
 RUN apk update && apk add dcron
 

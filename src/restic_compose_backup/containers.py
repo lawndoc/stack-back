@@ -35,6 +35,11 @@ class Container:
         self._include = self._parse_pattern(self.get_label(enums.LABEL_VOLUMES_INCLUDE))
         self._exclude = self._parse_pattern(self.get_label(enums.LABEL_VOLUMES_EXCLUDE))
 
+        # Parse network information
+        network_settings: dict = data.get("NetworkSettings", {})
+        networks: dict = network_settings.get("Networks", {})
+        self._networks = networks
+
     @property
     def instance(self) -> "Container":
         """Container: Get a service specific subclass instance"""
@@ -72,6 +77,11 @@ class Container:
         return self.get_label(
             "com.docker.compose.service", default=""
         ) or self.get_label("com.docker.swarm.service.name", default="")
+
+    @property
+    def network_names(self) -> set[str]:
+        """set[str]: Set of network names the container is connected to"""
+        return set(self._networks.keys())
 
     @property
     def backup_process_label(self) -> str:

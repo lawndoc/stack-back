@@ -487,17 +487,40 @@ def backup_container_with_multi_project(
     # Remove the old container
     backup_cont.remove()
 
+    # Parse volumes from Binds format to volumes dict format
+    # Binds format: ["/host/path:/container/path:ro"]
+    # Volumes format: {"/host/path": {"bind": "/container/path", "mode": "ro"}}
+    volumes_dict = {}
+    for bind in host_config.get("Binds", []):
+        parts = bind.split(":")
+        if len(parts) >= 2:
+            host_path = parts[0]
+            container_path = parts[1]
+            mode = parts[2] if len(parts) > 2 else "rw"
+            volumes_dict[host_path] = {"bind": container_path, "mode": mode}
+
+    # Get network names
+    networks = list(container_info["NetworkSettings"]["Networks"].keys())
+
     # Create a new container with the updated environment
+    # which is needed for the backup container to identify itself
+    # Note: We don't set hostname - Docker/Podman will set it to the container ID
     new_container = docker_client.containers.create(
         config["Image"],
+        command=config.get("Cmd"),
         environment=env_list,
-        volumes=host_config.get("Binds", []),
-        network=list(container_info["NetworkSettings"]["Networks"].keys())[0]
-        if container_info["NetworkSettings"]["Networks"]
-        else None,
+        volumes=volumes_dict,
         name=container_info["Name"].strip("/"),
         labels=config.get("Labels", {}),
+        detach=True,
+        working_dir=config.get("WorkingDir"),
+        entrypoint=config.get("Entrypoint"),
     )
+
+    # Connect to networks after creation (more compatible with Podman)
+    for network_name in networks:
+        network = docker_client.networks.get(network_name)
+        network.connect(new_container)
 
     # Start the new container
     new_container.start()
