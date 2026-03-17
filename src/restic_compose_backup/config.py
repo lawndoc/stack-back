@@ -44,6 +44,7 @@ class Config:
         self.auto_backup_all = (
             os.environ.get("AUTO_BACKUP_ALL") or self.include_all_volumes
         )
+        self.atomic_backup = os.environ.get("ATOMIC_BACKUP") or False
 
         # Log
         self.log_level = os.environ.get("LOG_LEVEL")

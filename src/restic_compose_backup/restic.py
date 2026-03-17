@@ -26,14 +26,27 @@ def init_repo(repository: str):
 
 
 def backup_files(repository: str, source="/volumes"):
+    """Back up files to the repository.
+
+    Args:
+        repository: Restic repository URL/path.
+        source: A single path string or a list of paths to include in
+            the backup.  When a list is provided every path is passed
+            to ``restic backup`` so they end up in the same snapshot.
+    """
+    if isinstance(source, (list, tuple)):
+        sources = list(source)
+    else:
+        sources = [source]
+
     return commands.run(
         restic(
             repository,
             [
                 "--verbose",
                 "backup",
-                source,
-            ],
+            ]
+            + sources,
         )
     )
 

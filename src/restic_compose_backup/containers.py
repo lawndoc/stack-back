@@ -308,6 +308,10 @@ class Container:
         """Back up this service"""
         raise NotImplementedError("Base container class don't implement this")
 
+    def dump_to_file(self):
+        """Dump database to a local file for atomic backup"""
+        raise NotImplementedError("Base container class don't implement this")
+
     def backup_destination_path(self) -> str:
         """Return the path backups will be saved at"""
         raise NotImplementedError("Base container class don't implement this")
