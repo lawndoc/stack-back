@@ -5,12 +5,13 @@ import logging
 from restic_compose_backup import (
     alerts,
     backup_runner,
+    hooks,
     log,
     restic,
 )
 from restic_compose_backup.config import Config
 from restic_compose_backup.containers import RunningContainers
-from restic_compose_backup import cron, utils
+from restic_compose_backup import cron, enums, utils
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,17 @@ def main():
             print(" - {} {} {}".format(node.id, addr, state))
 
 
+def _log_hook_summary(hook):
+    """Log a single hook's configuration in a readable format."""
+    summary = f"[{hook.order}] {hook.cmd}"
+    if hook.context:
+        summary += f" | context: {hook.context}"
+    if hook.on_error != hooks.ON_ERROR_ABORT:
+        summary += f" | on-error: {hook.on_error}"
+    summary += f" | from: {hook.source_service_name}"
+    logger.info("    %s", summary)
+
+
 def status(config, containers):
     """Outputs the backup config for the compose setup"""
     logger.info("Status for compose project '%s'", containers.project_name)
@@ -106,7 +118,7 @@ def status(config, containers):
 
     logger.info("%s Detected Config %s", "-" * 25, "-" * 25)
 
-    # Start making snapshots
+    # Display backup configuration for each container
     backup_containers = containers.containers_for_backup()
     for container in backup_containers:
         logger.info("service: %s", container.service_name)
@@ -139,6 +151,30 @@ def status(config, containers):
     if len(backup_containers) == 0:
         logger.info("No containers in the project has 'stack-back.*' label")
 
+    # Display backup order if configured
+    if utils.is_true(
+        containers.this_container.get_label(enums.LABEL_ORDERED)
+    ):
+        logger.info("%s Backup Order %s", "-" * 23, "-" * 23)
+        for position, container in enumerate(backup_containers, 1):
+            logger.info("  %d. %s", position, container.service_name)
+
+    # Display hooks
+    has_hooks = False
+    for stage in hooks.HOOK_STAGES:
+        stage_hooks = hooks.collect_hooks(
+            stage, containers.this_container, backup_containers,
+        )
+        if stage_hooks:
+            if not has_hooks:
+                logger.info(
+                    "%s Hooks %s", "-" * 27, "-" * 27,
+                )
+                has_hooks = True
+            logger.info("  %s:", stage)
+            for hook in stage_hooks:
+                _log_hook_summary(hook)
+
     logger.info("-" * 67)
 
 
@@ -167,6 +203,21 @@ def backup(config, containers: RunningContainers):
     logger.debug(
         "Starting backup container with image %s", containers.this_container.image
     )
+
+    # Build labels for the backup process container, forwarding hook and
+    # ordering labels so the spawned container can read them.
+    process_labels = {
+        containers.backup_process_label: "True",
+        "com.docker.compose.project": containers.project_name,
+    }
+    for key, value in containers.this_container._labels.items():
+        if (
+            key.startswith("stack-back.hooks.")
+            or key.startswith("stack-back.order.")
+            or key == enums.LABEL_ORDERED
+        ):
+            process_labels[key] = value
+
     try:
         result = backup_runner.run(
             image=containers.this_container.image,
@@ -174,10 +225,7 @@ def backup(config, containers: RunningContainers):
             volumes=volumes,
             environment=containers.this_container.environment,
             source_container_id=containers.this_container.id,
-            labels={
-                containers.backup_process_label: "True",
-                "com.docker.compose.project": containers.project_name,
-            },
+            labels=process_labels,
         )
     except Exception as ex:
         logger.exception(ex)
@@ -225,56 +273,99 @@ def start_backup_process(config, containers):
         logger.warning("Found no volumes to back up")
         has_volumes = False
 
+    backup_containers = containers.containers_for_backup()
+
     # Warn if there is nothing to do
-    if len(containers.containers_for_backup()) == 0 and not has_volumes:
+    if len(backup_containers) == 0 and not has_volumes:
         logger.error("No containers for backup found")
         exit(1)
 
-    # stop containers labeled to stop during backup
-    if len(containers.stop_during_backup_containers) > 0:
-        utils.stop_containers(containers.stop_during_backup_containers)
+    # Collect lifecycle hooks from backup container + target containers
+    pre_hooks = hooks.collect_hooks(
+        "pre", containers.this_container, backup_containers,
+    )
+    post_hooks = hooks.collect_hooks(
+        "post", containers.this_container, backup_containers,
+    )
+    error_hooks = hooks.collect_hooks(
+        "error", containers.this_container, backup_containers,
+    )
+    finally_hooks = hooks.collect_hooks(
+        "finally", containers.this_container, backup_containers,
+    )
 
-    # back up volumes
-    if has_volumes:
-        try:
-            logger.info("Backing up volumes")
-            vol_result = restic.backup_files(config.repository, source="/volumes")
-            logger.debug("Volume backup exit code: %s", vol_result)
-            if vol_result != 0:
-                logger.error("Volume backup exited with non-zero code: %s", vol_result)
-                errors = True
-        except Exception as ex:
-            logger.error("Exception raised during volume backup")
-            logger.exception(ex)
+    containers_stopped = False
+
+    try:
+        # --- pre hooks ---
+        if not hooks.execute_hooks(pre_hooks, containers):
             errors = True
 
-    # back up databases
-    logger.info("Backing up databases")
-    for container in containers.containers_for_backup():
-        if container.database_backup_enabled:
-            try:
-                instance = container.instance
-                logger.debug(
-                    "Backing up %s in service %s from project %s",
-                    instance.container_type,
-                    instance.service_name,
-                    instance.project_name,
-                )
-                result = instance.backup()
-                logger.debug("Exit code: %s", result)
-                if result != 0:
-                    logger.error("Backup command exited with non-zero code: %s", result)
+        if not errors:
+            # stop containers labeled to stop during backup
+            if len(containers.stop_during_backup_containers) > 0:
+                utils.stop_containers(containers.stop_during_backup_containers)
+                containers_stopped = True
+
+            # back up volumes
+            if has_volumes:
+                try:
+                    logger.info("Backing up volumes")
+                    vol_result = restic.backup_files(config.repository, source="/volumes")
+                    logger.debug("Volume backup exit code: %s", vol_result)
+                    if vol_result != 0:
+                        logger.error("Volume backup exited with non-zero code: %s", vol_result)
+                        errors = True
+                except Exception as ex:
+                    logger.error("Exception raised during volume backup")
+                    logger.exception(ex)
                     errors = True
-            except Exception as ex:
-                logger.exception(ex)
+
+            # back up databases
+            logger.info("Backing up databases")
+            for container in backup_containers:
+                if container.database_backup_enabled:
+                    try:
+                        instance = container.instance
+                        logger.debug(
+                            "Backing up %s in service %s from project %s",
+                            instance.container_type,
+                            instance.service_name,
+                            instance.project_name,
+                        )
+                        result = instance.backup()
+                        logger.debug("Exit code: %s", result)
+                        if result != 0:
+                            logger.error("Backup command exited with non-zero code: %s", result)
+                            errors = True
+                    except Exception as ex:
+                        logger.exception(ex)
+                        errors = True
+
+    except Exception as ex:
+        logger.exception(ex)
+        errors = True
+
+    finally:
+        # Always restart stopped containers first, so that all subsequent
+        # hooks (post, error, finally) can exec into them.
+        if containers_stopped:
+            utils.start_containers(containers.stop_during_backup_containers)
+
+        # --- post hooks (only when everything succeeded) ---
+        if not errors:
+            if not hooks.execute_hooks(post_hooks, containers):
                 errors = True
 
-    # restart stopped containers after backup
-    if len(containers.stop_during_backup_containers) > 0:
-        utils.start_containers(containers.stop_during_backup_containers)
+        # --- error hooks (only on failure) ---
+        if errors:
+            hooks.execute_hooks(error_hooks, containers)
+
+        # --- finally hooks (always) ---
+        hooks.execute_hooks(finally_hooks, containers)
 
     if errors:
-        logger.error("Exit code: %s", errors)
+        logger.error("Exit code: %s", 1)
         exit(1)
 
     # Only run maintenance tasks if maintenance is not scheduled

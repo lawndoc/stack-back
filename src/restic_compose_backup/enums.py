@@ -9,3 +9,6 @@ LABEL_POSTGRES_ENABLED = "stack-back.postgres"
 LABEL_MARIADB_ENABLED = "stack-back.mariadb"
 
 LABEL_BACKUP_PROCESS = "stack-back.process"
+
+LABEL_ORDERED = "stack-back.ordered"
+LABEL_ORDER_PREFIX = "stack-back.order."
