@@ -47,6 +47,7 @@ def containers(project="default", containers=[]):
                         "com.docker.compose.service": container["service"],
                         **container.get("labels", {}),
                     },
+                    "Env": container.get("env", []),
                 },
                 "Mounts": container.get("mounts", []),
                 "State": {

@@ -68,6 +68,24 @@ class MariadbContainer(Container):
             environment={"MYSQL_PWD": creds["password"]},
         )
 
+    def dump_to_file(self):
+        """Dump database to a local file for atomic backup.
+
+        Streams the output of ``dump_command()`` from the MariaDB container
+        to a file at ``backup_destination_path()`` on the backup container's
+        filesystem.
+
+        Returns:
+            int: Exit code of the dump command (0 on success).
+        """
+        creds = self.get_credentials()
+        return commands.docker_exec_to_file(
+            self.id,
+            self.dump_command(),
+            str(self.backup_destination_path()),
+            environment={"MYSQL_PWD": creds["password"]},
+        )
+
     def backup_destination_path(self) -> str:
         destination = Path("/databases")
 
@@ -141,6 +159,24 @@ class MysqlContainer(Container):
             environment={"MYSQL_PWD": creds["password"]},
         )
 
+    def dump_to_file(self):
+        """Dump database to a local file for atomic backup.
+
+        Streams the output of ``dump_command()`` from the MySQL container
+        to a file at ``backup_destination_path()`` on the backup container's
+        filesystem.
+
+        Returns:
+            int: Exit code of the dump command (0 on success).
+        """
+        creds = self.get_credentials()
+        return commands.docker_exec_to_file(
+            self.id,
+            self.dump_command(),
+            str(self.backup_destination_path()),
+            environment={"MYSQL_PWD": creds["password"]},
+        )
+
     def backup_destination_path(self) -> str:
         destination = Path("/databases")
 
@@ -201,6 +237,22 @@ class PostgresContainer(Container):
             self.backup_destination_path(),
             self.id,
             self.dump_command(),
+        )
+
+    def dump_to_file(self):
+        """Dump database to a local file for atomic backup.
+
+        Streams the output of ``dump_command()`` from the PostgreSQL container
+        to a file at ``backup_destination_path()`` on the backup container's
+        filesystem.
+
+        Returns:
+            int: Exit code of the dump command (0 on success).
+        """
+        return commands.docker_exec_to_file(
+            self.id,
+            self.dump_command(),
+            str(self.backup_destination_path()),
         )
 
     def backup_destination_path(self) -> str:

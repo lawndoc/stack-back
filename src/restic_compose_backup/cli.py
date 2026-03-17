@@ -1,6 +1,7 @@
 import argparse
 import os
 import logging
+import shutil
 
 from restic_compose_backup import (
     alerts,
@@ -87,6 +88,10 @@ def status(config, containers):
     )
     logger.debug(
         f"Use cache for integrity check?: {utils.is_true(config.check_with_cache)}"
+    )
+    logger.info(
+        "Atomic backup (volumes + databases in one snapshot)?: %s",
+        utils.is_true(config.atomic_backup),
     )
     logger.info("Checking docker availability")
 
@@ -234,40 +239,103 @@ def start_backup_process(config, containers):
     if len(containers.stop_during_backup_containers) > 0:
         utils.stop_containers(containers.stop_during_backup_containers)
 
-    # back up volumes
-    if has_volumes:
-        try:
-            logger.info("Backing up volumes")
-            vol_result = restic.backup_files(config.repository, source="/volumes")
-            logger.debug("Volume backup exit code: %s", vol_result)
-            if vol_result != 0:
-                logger.error("Volume backup exited with non-zero code: %s", vol_result)
-                errors = True
-        except Exception as ex:
-            logger.error("Exception raised during volume backup")
-            logger.exception(ex)
-            errors = True
+    if utils.is_true(config.atomic_backup):
+        # --- Atomic mode ---
+        # Dump databases to files in /databases/, then back up /volumes and
+        # /databases together in a single restic snapshot.
+        logger.info("Atomic backup mode: dumping databases to disk")
+        for container in containers.containers_for_backup():
+            if container.database_backup_enabled:
+                try:
+                    instance = container.instance
+                    logger.debug(
+                        "Dumping %s in service %s from project %s",
+                        instance.container_type,
+                        instance.service_name,
+                        instance.project_name,
+                    )
+                    result = instance.dump_to_file()
+                    logger.debug("Database dump exit code: %s", result)
+                    if result != 0:
+                        logger.error(
+                            "Database dump exited with non-zero code: %s", result
+                        )
+                        errors = True
+                except Exception as ex:
+                    logger.exception(ex)
+                    errors = True
 
-    # back up databases
-    logger.info("Backing up databases")
-    for container in containers.containers_for_backup():
-        if container.database_backup_enabled:
+        # Collect backup sources
+        sources = []
+        if has_volumes:
+            sources.append("/volumes")
+        try:
+            has_databases = os.path.isdir("/databases") and len(
+                os.listdir("/databases")
+            ) > 0
+        except OSError:
+            has_databases = False
+        if has_databases:
+            sources.append("/databases")
+
+        if sources:
             try:
-                instance = container.instance
-                logger.debug(
-                    "Backing up %s in service %s from project %s",
-                    instance.container_type,
-                    instance.service_name,
-                    instance.project_name,
+                logger.info(
+                    "Backing up %s in a single snapshot", " and ".join(sources)
                 )
-                result = instance.backup()
-                logger.debug("Exit code: %s", result)
+                result = restic.backup_files(config.repository, source=sources)
+                logger.debug("Backup exit code: %s", result)
                 if result != 0:
-                    logger.error("Backup command exited with non-zero code: %s", result)
+                    logger.error(
+                        "Backup exited with non-zero code: %s", result
+                    )
                     errors = True
             except Exception as ex:
+                logger.error("Exception raised during backup")
                 logger.exception(ex)
                 errors = True
+
+        # Clean up dump files
+        if os.path.exists("/databases"):
+            shutil.rmtree("/databases", ignore_errors=True)
+    else:
+        # --- Standard mode ---
+        # Volumes and each database are backed up as separate restic snapshots.
+
+        # back up volumes
+        if has_volumes:
+            try:
+                logger.info("Backing up volumes")
+                vol_result = restic.backup_files(config.repository, source="/volumes")
+                logger.debug("Volume backup exit code: %s", vol_result)
+                if vol_result != 0:
+                    logger.error("Volume backup exited with non-zero code: %s", vol_result)
+                    errors = True
+            except Exception as ex:
+                logger.error("Exception raised during volume backup")
+                logger.exception(ex)
+                errors = True
+
+        # back up databases
+        logger.info("Backing up databases")
+        for container in containers.containers_for_backup():
+            if container.database_backup_enabled:
+                try:
+                    instance = container.instance
+                    logger.debug(
+                        "Backing up %s in service %s from project %s",
+                        instance.container_type,
+                        instance.service_name,
+                        instance.project_name,
+                    )
+                    result = instance.backup()
+                    logger.debug("Exit code: %s", result)
+                    if result != 0:
+                        logger.error("Backup command exited with non-zero code: %s", result)
+                        errors = True
+                except Exception as ex:
+                    logger.exception(ex)
+                    errors = True
 
     # restart stopped containers after backup
     if len(containers.stop_during_backup_containers) > 0:
