@@ -471,8 +471,91 @@ class RunningContainers:
         return self.backup_process_container is not None
 
     def containers_for_backup(self) -> list[Container]:
-        """Obtain all containers with backup enabled"""
-        return [container for container in self.containers if container.backup_enabled]
+        """Obtain all containers with backup enabled.
+
+        When ``stack-back.ordered`` is set on the backup container, the
+        returned list respects the ``stack-back.order.<N>`` sequence.
+        Containers not mentioned in the order list are appended afterwards.
+        """
+        enabled = [
+            container for container in self.containers
+            if container.backup_enabled
+        ]
+
+        order = self._parse_backup_order()
+        if not order:
+            return enabled
+
+        containers_by_service = {
+            container.service_name: container
+            for container in enabled
+        }
+        ordered: list[Container] = []
+        seen: set[str] = set()
+
+        for service_name in order:
+            if service_name in seen:
+                logger.warning(
+                    "Duplicate service '%s' in backup order, skipping",
+                    service_name,
+                )
+                continue
+            seen.add(service_name)
+
+            if service_name in containers_by_service:
+                ordered.append(containers_by_service[service_name])
+            else:
+                logger.warning(
+                    "Ordered service '%s' not found in backup containers",
+                    service_name,
+                )
+
+        # Append containers not mentioned in the order list
+        for container in enabled:
+            if container.service_name not in seen:
+                logger.warning(
+                    "Service '%s' not in backup order, appending after ordered services",
+                    container.service_name,
+                )
+                ordered.append(container)
+
+        return ordered
+
+    def _parse_backup_order(self) -> list[str]:
+        """Parse ``stack-back.order.<N>`` labels from the backup container.
+
+        Returns an ordered list of service names, or an empty list when
+        ordering is disabled or no order labels are found.
+        """
+        if not self.this_container:
+            return []
+
+        if not utils.is_true(self.this_container.get_label(enums.LABEL_ORDERED)):
+            return []
+
+        order_map: dict[int, str] = {}
+        for label, value in self.this_container._labels.items():
+            if not label.startswith(enums.LABEL_ORDER_PREFIX):
+                continue
+            suffix = label[len(enums.LABEL_ORDER_PREFIX):]
+            try:
+                order_num = int(suffix)
+            except ValueError:
+                logger.warning("Invalid order number in label '%s'", label)
+                continue
+            order_map[order_num] = value
+
+        if not order_map:
+            logger.warning(
+                "stack-back.ordered is set but no order labels found, "
+                "falling back to default order"
+            )
+            return []
+
+        return [
+            order_map[position]
+            for position in sorted(order_map.keys())
+        ]
 
     def generate_backup_mounts(self, dest_prefix="/volumes") -> dict:
         """Generate mounts for backup for the entire compose setup"""

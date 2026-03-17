@@ -41,6 +41,7 @@ def containers(project="default", containers=[]):
                 + "".join(random.choice(string.ascii_lowercase) for i in range(16)),
                 "Config": {
                     "Image": container.get("image", "image:latest"),
+                    "Env": container.get("env", []),
                     "Labels": {
                         "com.docker.compose.oneoff": "False",
                         "com.docker.compose.project": project,
