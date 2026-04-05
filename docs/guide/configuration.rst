@@ -175,10 +175,19 @@ Alerts can be tested using the ``rcb alerts`` command.
 This will send a test message to all configured alert
 backends.
 
+EMAIL_SEND_FROM
+~~~~~~~~~~~~~
+
+The email address to send alerts from. If not set, the ``EMAIL_HOST_USER`` will be used as the sender address.
+
+Alerts can be tested using the ``rcb alerts`` command.
+This will send a test message to all configured alert
+backends.
+
 EMAIL_SEND_TO
 ~~~~~~~~~~~~~
 
-The email address to send alerts
+The email address to send alerts to. Multiple addresses can be separated by a space.
 
 Alerts can be tested using the ``rcb alerts`` command.
 This will send a test message to all configured alert
