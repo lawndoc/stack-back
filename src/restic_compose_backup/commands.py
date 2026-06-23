@@ -6,6 +6,16 @@ from subprocess import Popen, PIPE
 logger = logging.getLogger(__name__)
 
 
+def _redacted_cmd(cmd: List[str]) -> str:
+    """Join cmd into a log-safe string, masking any embedded secret.
+
+    Each argument is passed through utils.redact_repo_url(), which masks the
+    password in a repository URL (e.g. rest:http://user:pass@host/...) and
+    leaves all other arguments unchanged.
+    """
+    return " ".join(utils.redact_repo_url(arg) for arg in cmd)
+
+
 def test():
     return run(["ls", "/volumes"])
 
@@ -64,7 +74,7 @@ def docker_exec(
 ) -> int:
     """Execute a command within the given container"""
     client = utils.docker_client()
-    logger.debug("docker exec inside %s: %s", container_id, " ".join(cmd))
+    logger.debug("docker exec inside %s: %s", container_id, _redacted_cmd(cmd))
     exit_code, (stdout, stderr) = client.containers.get(container_id).exec_run(
         cmd, demux=True, environment=environment
     )
@@ -84,7 +94,7 @@ def docker_exec(
 
 def run(cmd: List[str]) -> int:
     """Run a command with parameters"""
-    logger.debug("cmd: %s", " ".join(cmd))
+    logger.debug("cmd: %s", _redacted_cmd(cmd))
     child = Popen(cmd, stdout=PIPE, stderr=PIPE)
     stdoutdata, stderrdata = child.communicate()
 
@@ -104,7 +114,7 @@ def run(cmd: List[str]) -> int:
 
 def run_capture_std(cmd: List[str]) -> Tuple[str, str]:
     """Run a command with parameters and return stdout, stderr"""
-    logger.debug("cmd: %s", " ".join(cmd))
+    logger.debug("cmd: %s", _redacted_cmd(cmd))
     child = Popen(cmd, stdout=PIPE, stderr=PIPE)
     return child.communicate()
 

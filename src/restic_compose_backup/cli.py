@@ -71,7 +71,7 @@ def main():
 def status(config, containers):
     """Outputs the backup config for the compose setup"""
     logger.info("Status for compose project '%s'", containers.project_name)
-    logger.info("Repository: '%s'", config.repository)
+    logger.info("Repository: '%s'", utils.redact_repo_url(config.repository))
     logger.info("Backup currently running?: %s", containers.backup_process_running)
     logger.info(
         "Include project name in backup path?: %s",
@@ -100,7 +100,10 @@ def status(config, containers):
         logger.info("Repository is not initialized. Attempting to initialize it.")
         result = restic.init_repo(config.repository)
         if result == 0:
-            logger.info("Successfully initialized repository: %s", config.repository)
+            logger.info(
+                "Successfully initialized repository: %s",
+                utils.redact_repo_url(config.repository),
+            )
         else:
             logger.error("Failed to initialize repository")
 
