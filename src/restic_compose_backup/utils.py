@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 from typing import List, TYPE_CHECKING
 from contextlib import contextmanager
@@ -114,6 +115,48 @@ def strip_root(path):
         return path[1:]
 
     return path
+
+
+def redact_repo_url(repository):
+    """
+    Mask any password embedded in a restic repository URL so it is safe to log.
+
+    A repository string can carry the password inline as HTTP basic auth, e.g.
+    ``rest:http://user:password@host:8000/path`` (the ``rest:`` prefix is
+    restic's backend tag in front of a real URL). The password is replaced with
+    ``***``, including any ``/`` or ``@`` characters it may contain.
+
+    Repository strings without a ``scheme://`` URL (s3, local paths) or without
+    embedded credentials (key-based sftp, ...) are returned unchanged. Note that
+    restic's sftp backend authenticates via ssh keys/agent and does not support
+    inline URL passwords, so a bare ``sftp:`` spec is intentionally not redacted.
+
+    >>> redact_repo_url('rest:http://user:s3cr3t@backup.example.com:8000/repo')
+    'rest:http://user:***@backup.example.com:8000/repo'
+    """
+    if not repository:
+        return repository
+    # restic prefixes some backends (e.g. "rest:") before a real URL. Locate the
+    # embedded "scheme://" URL; anything before it is left untouched.
+    match = re.search(r"[a-zA-Z][a-zA-Z0-9+.-]*://", repository)
+    if not match:
+        return repository
+    prefix = repository[: match.start()]
+    scheme = match.group(0)
+    after = repository[match.end() :]
+    if "@" not in after:
+        return repository
+    # The userinfo (user:password) sits between the scheme and the LAST "@"
+    # before the host. Using the last "@" matches how URL parsers split userinfo,
+    # and — unlike cutting the authority at the first "/" — keeps a password
+    # that contains "/" (or "@") from leaking through.
+    last_at = after.rfind("@")
+    userinfo = after[:last_at]
+    hostpath = after[last_at + 1 :]
+    if ":" not in userinfo:
+        return repository
+    user = userinfo.split(":", 1)[0]
+    return prefix + scheme + f"{user}:***@{hostpath}"
 
 
 @contextmanager
