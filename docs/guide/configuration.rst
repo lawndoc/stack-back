@@ -128,7 +128,7 @@ Whether restic should use the local cache when checking for integrity
 of the repository. This is useful for reducing remote read operations,
 which may be charged by your cloud provider.
 
-The tradeoff is that there is a small risk of not detecting corrupted 
+The tradeoff is that there is a small risk of not detecting corrupted
 data in the repository if the remote is corrupted but the local cache is not.
 
 LOG_LEVEL
@@ -218,21 +218,21 @@ were we cannot map in the docker socket.
 AUTO_BACKUP_ALL
 ~~~~~~~~~~~~~~~~~~~
 
-If defined, all volumes and databases in the project will be 
-included in the backup. This removes the need to add labels to 
+If defined, all volumes and databases in the project will be
+included in the backup. This removes the need to add labels to
 each service when you want to back up everything.
 
-Database detection is based on the default images for mariadb, mysql 
-and postgres. When a database is detected, the volume associated with 
+Database detection is based on the default images for mariadb, mysql
+and postgres. When a database is detected, the volume associated with
 the database data is automatically excluded from the backup.
 
 Volumes can be excluded by adding the ``stack-back.volumes.exclude: <volume_name>``
 or ``stack-back.volumes: False`` label to the service.
 
 Databases can be excluded by adding the
-``stack-back.<db_type>: False`` label to the service along with 
-``stack-back.volumes: False``. Forgetting to also exclude the 
-volumes may result in a backup of the database files volume instead 
+``stack-back.<db_type>: False`` label to the service along with
+``stack-back.volumes: False``. Forgetting to also exclude the
+volumes may result in a backup of the database files volume instead
 of the database itself.
 
 INCLUDE_PROJECT_NAME
@@ -271,6 +271,14 @@ SWARM_MODE
 ~~~~~~~~~~
 
 If defined containers in swarm stacks are also evaluated.
+
+PER_SERVICE_SNAPSHOT
+~~~~~~~~~~
+
+**Default value**: ``false``
+
+Whether restic should create one snapshot per service.
+Otherwise, one snapshot with volumes from all services is created.
 
 Compose Labels
 --------------
@@ -330,15 +338,15 @@ Their path in restic will be:
 - /volumes/myservice/srv/data
 
 In situations where the files in the volume are at risk of being
-corrupted during the backup process (such as SQLite databases), 
-the `stack-back.volumes.stop-during-backup` label can be added to 
-the service. This will stop the service during the backup process 
+corrupted during the backup process (such as SQLite databases),
+the `stack-back.volumes.stop-during-backup` label can be added to
+the service. This will stop the service during the backup process
 and start it again when the backup is done.
 
 Example:
 
 .. code:: yaml
-  
+
     myservice:
       image: some_image
       labels:

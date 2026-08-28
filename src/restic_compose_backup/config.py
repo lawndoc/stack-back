@@ -1,6 +1,8 @@
 import logging
 import os
 
+from restic_compose_backup import utils
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,6 +64,9 @@ class Config:
         )
         self.keep_yearly = (
             os.environ.get("RESTIC_KEEP_YEARLY") or os.environ.get("KEEP_YEARLY") or "3"
+        )
+        self.per_service_snapshot = utils.is_true(
+            os.environ.get("PER_SERVICE_SNAPSHOT")
         )
 
         if check:
