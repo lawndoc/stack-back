@@ -5,9 +5,11 @@ logger = logging.getLogger(__name__)
 
 
 class Config:
-    default_backup_command = "source /.env && rcb backup > /proc/1/fd/1"
+    default_backup_command = "source /.env && rcb backup > /proc/1/fd/1 2> /proc/1/fd/2"
     default_crontab_schedule = "0 2 * * *"
-    default_maintenance_command = "source /.env && rcb maintenance > /proc/1/fd/1"
+    default_maintenance_command = (
+        "source /.env && rcb maintenance > /proc/1/fd/1 2> /proc/1/fd/2"
+    )
 
     """Bag for config values"""
 

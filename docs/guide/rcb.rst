@@ -169,7 +169,7 @@ the container starts. It can be user to verify the configuration.
 Example output::
 
     /stack-back # rcb crontab
-    10 2 * * * source /env.sh && rcb backup > /proc/1/fd/1
+    10 2 * * * source /env.sh && rcb backup > /proc/1/fd/1 2> /proc/1/fd/2
 
 cleanup
 ~~~~~~~
