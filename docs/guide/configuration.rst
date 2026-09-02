@@ -90,7 +90,7 @@ env variables.
 CRON_COMMAND
 ~~~~~~~~~~~~
 
-**Default value**: ``source /env.sh && rcb backup > /proc/1/fd/1``
+**Default value**: ``source /env.sh && rcb backup > /proc/1/fd/1 2> /proc/1/fd/2``
 
 The command executed in the crontab. A single line is generated when
 the container starts from the ``CRON_SCHEDULE`` and ``CRON_COMMAND``
@@ -102,7 +102,7 @@ docker logs.
 
 By default the crontab will look like this::
 
-    0 2 * * * source /env.sh && rcb backup > /proc/1/fd/1
+    0 2 * * * source /env.sh && rcb backup > /proc/1/fd/1 2> /proc/1/fd/2
 
 MAINTENANCE_SCHEDULE
 ~~~~~~~~~~~~~~~~~~~~~
