@@ -312,7 +312,7 @@ def cleanup(config, containers):
     )
     logger.info("Prune stale data freeing storage space")
     prune_result = restic.prune(config.repository)
-    return forget_result and prune_result
+    return forget_result or prune_result
 
 
 def snapshots(config, containers):
