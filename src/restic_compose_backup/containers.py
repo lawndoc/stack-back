@@ -220,7 +220,7 @@ class Container:
 
     def get_label(self, name, default=None):
         """Get a label by name"""
-        return self._labels.get(name, None)
+        return self._labels.get(name, default)
 
     def filter_mounts(self):
         """Get all mounts for this container matching include/exclude filters"""
